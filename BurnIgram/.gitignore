@@ -1,0 +1,8 @@
+#Eclipse Project - inappropriate files
+/Users/
+/build/
+/target/
+/WebContent/
+.settings/
+.classpath
+.project

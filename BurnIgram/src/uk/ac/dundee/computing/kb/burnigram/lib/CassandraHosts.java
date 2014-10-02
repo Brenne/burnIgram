@@ -21,7 +21,7 @@ import com.datastax.driver.core.Metadata;
  */
 public final class CassandraHosts {
 
-    private static Cluster cluster;
+    private static Cluster cluster= null;
     static String Host = "127.0.0.1";  //at least one starting point to talk to
 
     public CassandraHosts() {
@@ -57,6 +57,10 @@ public final class CassandraHosts {
     }
 
     public static Cluster getCluster() {
+    	if(cluster!=null && !cluster.isClosed()){
+    		System.out.println("cluster already loaded");
+    		return cluster;
+    	}
         System.out.println("getCluster");
         cluster = Cluster.builder()
                 .addContactPoint(Host).build();

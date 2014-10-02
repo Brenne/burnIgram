@@ -32,6 +32,7 @@ import org.imgscalr.Scalr.Method;
 //import uk.ac.dundee.computing.aec.stores.TweetStore;
 
 
+import uk.ac.dundee.computing.kb.burnigram.lib.CassandraHosts;
 import uk.ac.dundee.computing.kb.burnigram.lib.Convertors;
 import uk.ac.dundee.computing.kb.burnigram.lib.Keyspaces;
 import uk.ac.dundee.computing.kb.burnigram.stores.Pic;
@@ -54,12 +55,19 @@ public class PicModel {
 	public void setCluster(Cluster cluster) {
 		this.cluster = cluster;
 	}
+	
+	public void setCluster(){
+		this.cluster=CassandraHosts.getCluster();
+	}
+
 	/**
 	 * 
-	 * @param b 
+	 * @param b
 	 * @param contentType
-	 * @param name Filename of Picture
-	 * @param user Name of the User 
+	 * @param name
+	 *            Filename of Picture
+	 * @param user
+	 *            Name of the User
 	 */
 	public void insertPic(byte[] b, String contentType, String name, String user) {
 		try {
@@ -155,7 +163,7 @@ public class PicModel {
 	public java.util.LinkedList<Pic> getPicsForUser(String User) {
 		java.util.LinkedList<Pic> Pics = new java.util.LinkedList<>();
 		Session session = cluster.connect(Keyspaces.KEYSPACE_NAME);
-		
+
 		PreparedStatement ps = session
 				.prepare("SELECT picid FROM userpiclist WHERE user =?");
 		ResultSet rs = null;
@@ -196,7 +204,7 @@ public class PicModel {
 						.prepare("select image,imagelength,type from pics where picid =?");
 			} else if (image_type == Convertors.DISPLAY_THUMB) {
 				ps = session
-						.prepare("select thumb,imagelength,thumblength,type from pics where picid =?");
+						.prepare("select thumb,thumblength,type from pics where picid =?");
 			} else if (image_type == Convertors.DISPLAY_PROCESSED) {
 				ps = session
 						.prepare("select processed,processedlength,type from pics where picid =?");

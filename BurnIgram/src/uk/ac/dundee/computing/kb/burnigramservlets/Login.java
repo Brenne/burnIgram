@@ -6,10 +6,7 @@
 
 package uk.ac.dundee.computing.kb.burnigramservlets;
 
-import com.datastax.driver.core.Cluster;
-
 import java.io.IOException;
-import java.io.PrintWriter;
 
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletConfig;
@@ -23,6 +20,8 @@ import javax.servlet.http.HttpSession;
 import uk.ac.dundee.computing.kb.burnigram.lib.CassandraHosts;
 import uk.ac.dundee.computing.kb.burnigram.models.User;
 import uk.ac.dundee.computing.kb.burnigram.stores.LoggedIn;
+
+import com.datastax.driver.core.Cluster;
 
 /**
  *

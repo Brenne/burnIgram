@@ -1,7 +1,9 @@
 package uk.ac.dundee.computing.kb.burnigram.lib;
 
+import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.StringTokenizer;
+
 
 //import java.util.UUID;
 import javax.servlet.http.HttpServletRequest;
@@ -137,24 +139,29 @@ public final class Convertors {
         // argv[0] should be the user directory
         return args;
     }
-    
+    /**
+     * splits request Path into String array. 
+     * e.g. /Burnigram/Images/kai
+     * into {"Burnigram","Images","kai"}
+     * @param request
+     * @return String Array with Path components
+     */
     public static String[] SplitRequestPath(HttpServletRequest request) {
         String args[] = null;
-
         StringTokenizer st = SplitString(request.getRequestURI());
         args = new String[st.countTokens()];
 		//Lets assume the number is the last argument
 
         int argv = 0;
-        while (st.hasMoreTokens()) {;
+        while (st.hasMoreTokens()) {
             args[argv] = new String();
 
             args[argv] = st.nextToken();
             try {
-                //System.out.println("String was "+URLDecoder.decode(args[argv],"UTF-8"));
+                System.out.println("String was "+URLDecoder.decode(args[argv],"UTF-8"));
                 args[argv] = URLDecoder.decode(args[argv], "UTF-8");
 
-            } catch (Exception et) {
+            } catch (UnsupportedEncodingException et) {
                 System.out.println("Bad URL Encoding" + args[argv]);
             }
             argv++;

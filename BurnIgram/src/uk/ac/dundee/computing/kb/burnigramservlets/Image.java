@@ -20,13 +20,10 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import javax.servlet.http.Part;
 
-import uk.ac.dundee.computing.kb.burnigram.lib.CassandraHosts;
 import uk.ac.dundee.computing.kb.burnigram.lib.Convertors;
 import uk.ac.dundee.computing.kb.burnigram.models.PicModel;
 import uk.ac.dundee.computing.kb.burnigram.stores.LoggedIn;
 import uk.ac.dundee.computing.kb.burnigram.stores.Pic;
-
-import com.datastax.driver.core.Cluster;
 
 /**
  * Servlet implementation class Image
@@ -43,7 +40,6 @@ import com.datastax.driver.core.Cluster;
 public class Image extends HttpServlet {
 
     private static final long serialVersionUID = 1L;
-    private Cluster cluster;
     private HashMap<String,Integer> CommandsMap = new HashMap<String, Integer>();
     
     
@@ -62,7 +58,7 @@ public class Image extends HttpServlet {
 
     public void init(ServletConfig config) throws ServletException {
         // TODO Auto-generated method stub
-        cluster = CassandraHosts.getCluster();
+       
     }
 
     /**
@@ -70,7 +66,6 @@ public class Image extends HttpServlet {
      * response)
      */
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        // TODO Auto-generated method stub
         String args[] = Convertors.SplitRequestPath(request);
         int command;
         try {
@@ -96,7 +91,7 @@ public class Image extends HttpServlet {
 
     private void DisplayImageList(String User, HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         PicModel tm = new PicModel();
-        tm.setCluster(cluster);
+        tm.setCluster();
         LinkedList<Pic> pictureList = tm.getPicsForUser(User);
         RequestDispatcher rd = request.getRequestDispatcher("/UsersPics.jsp");
         request.setAttribute("Pics", pictureList);
@@ -106,7 +101,7 @@ public class Image extends HttpServlet {
 
     private void DisplayImage(int type,String Image, HttpServletResponse response) throws ServletException, IOException {
         PicModel tm = new PicModel();
-        tm.setCluster(cluster);
+        tm.setCluster();
   
         
         Pic p = tm.getPic(type,java.util.UUID.fromString(Image));
@@ -124,7 +119,7 @@ public class Image extends HttpServlet {
         }
         out.close();
     }
-
+    
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         for (Part part : request.getParts()) {
             System.out.println("Part Name " + part.getName());
@@ -145,7 +140,7 @@ public class Image extends HttpServlet {
                 is.read(b);
                 System.out.println("Length : " + b.length);
                 PicModel tm = new PicModel();
-                tm.setCluster(cluster);
+                tm.setCluster();
                 tm.insertPic(b, contentType, filename, username);
 
                 is.close();

@@ -15,18 +15,8 @@
         <link rel="stylesheet" type="text/css" href="/Instagrim/Styles.css" />
     </head>
     <body>
-        <header>
-        
-        <h1>InstaGrim ! </h1>
-        <h2>Your world in Black and White</h2>
-        </header>
-        
-        <div id="nav">
-            <ul>
-                <li class="nav"><a href="/Instagrim/upload.jsp">Upload</a></li>
-                <li class="nav"><a href="/Instagrim/Images/majed">Sample Images</a></li>
-            </ul>
-        </div>
+       <jsp:include page="include/header.jsp" />
+       <jsp:include page="include/navigation.jsp" />
  
         <article>
             <h1>Your Pics</h1>
@@ -43,7 +33,7 @@
                 Pic p = (Pic) iterator.next();
 
         %>
-        <a href="/BurnIgram/Image/<%=p.getSUUID()%>" ><img src="/BurnIgram/Thumb/<%=p.getSUUID()%>"></a><br/><%
+        <a href="<%=Globals.ROOT_PATH%>/Image/<%=p.getSUUID()%>" ><img src="<%=Globals.ROOT_PATH%>/Thumb/<%=p.getSUUID()%>"></a><br/><%
 
             }
             }

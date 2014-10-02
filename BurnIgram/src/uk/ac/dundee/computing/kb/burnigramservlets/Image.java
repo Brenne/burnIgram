@@ -7,6 +7,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.util.HashMap;
+import java.util.LinkedList;
 
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletConfig;
@@ -96,9 +97,9 @@ public class Image extends HttpServlet {
     private void DisplayImageList(String User, HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         PicModel tm = new PicModel();
         tm.setCluster(cluster);
-        java.util.LinkedList<Pic> lsPics = tm.getPicsForUser(User);
+        LinkedList<Pic> pictureList = tm.getPicsForUser(User);
         RequestDispatcher rd = request.getRequestDispatcher("/UsersPics.jsp");
-        request.setAttribute("Pics", lsPics);
+        request.setAttribute("Pics", pictureList);
         rd.forward(request, response);
 
     }
@@ -128,13 +129,13 @@ public class Image extends HttpServlet {
         for (Part part : request.getParts()) {
             System.out.println("Part Name " + part.getName());
 
-            String type = part.getContentType();
+            String contentType = part.getContentType();
             String filename = part.getSubmittedFileName();
             
             InputStream is = request.getPart(part.getName()).getInputStream();
             int i = is.available();
             HttpSession session=request.getSession();
-            LoggedIn lg= (LoggedIn)session.getAttribute("LoggedIn");
+            LoggedIn lg= (LoggedIn)session.getAttribute(Login.SESSION_NAME_LOGIN);
             String username="majed";
             if (lg.getLogedin()){
                 username=lg.getUsername();
@@ -145,7 +146,7 @@ public class Image extends HttpServlet {
                 System.out.println("Length : " + b.length);
                 PicModel tm = new PicModel();
                 tm.setCluster(cluster);
-                tm.insertPic(b, type, filename, username);
+                tm.insertPic(b, contentType, filename, username);
 
                 is.close();
             }
@@ -159,7 +160,7 @@ public class Image extends HttpServlet {
 
         PrintWriter out = null;
         out = new PrintWriter(response.getOutputStream());
-        out.println("<h1>You have a na error in your input</h1>");
+        out.println("<h1>You have an error in your input</h1>");
         out.println("<h2>" + mess + "</h2>");
         out.close();
         return;

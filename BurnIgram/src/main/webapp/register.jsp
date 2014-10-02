@@ -13,10 +13,7 @@
         <link rel="stylesheet" type="text/css" href="Styles.css" />
     </head>
     <body>
-        <header>
-        <h1>InstaGrim ! </h1>
-        <h2>Your world in Black and White</h2>
-        </header>
+        <jsp:include page="include/header.jsp"></jsp:include>
         <div id="nav">
             <ul>
                 

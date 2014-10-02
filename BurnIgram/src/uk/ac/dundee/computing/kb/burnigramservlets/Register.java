@@ -48,13 +48,11 @@ public class Register extends HttpServlet {
 		String password = request.getParameter("password");
 
 		User user = new User();
-		if(user.registerUser(username, password)){
+		if (user.registerUser(username, password)) {
 			response.sendRedirect("/Burnigram");
-		}else{
+		} else {
 			response.sendRedirect("/Burnigram/register.jsp");
 		}
-		
-		
 
 	}
 

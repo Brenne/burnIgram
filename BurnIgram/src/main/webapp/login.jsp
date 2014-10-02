@@ -14,16 +14,8 @@
 
     </head>
     <body>
-        <header>
-        <h1>InstaGrim ! </h1>
-        <h2>Your world in Black and White</h2>
-        </header>
-        <div id="nav">
-            <ul>
-                
-                <li><a href="/Burnigram/Images/samples">Sample Images</a></li>
-            </ul>
-        </div>
+        <jsp:include page="include/header.jsp"></jsp:include>
+         <jsp:include page="include/navigation.jsp"></jsp:include>
        
         <article>
             <h3>Login</h3>

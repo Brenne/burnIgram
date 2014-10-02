@@ -31,6 +31,7 @@ import uk.ac.dundee.computing.kb.burnigram.stores.LoggedIn;
 @WebServlet(name = "Login", urlPatterns = {"/Login"})
 public class Login extends HttpServlet {
 
+	public static final String SESSION_NAME_LOGIN="loggedIn";
     Cluster cluster=null;
 
 
@@ -65,7 +66,7 @@ public class Login extends HttpServlet {
             lg.setUsername(username);
             //request.setAttribute("LoggedIn", lg);
             
-            session.setAttribute("loggedIn", lg);
+            session.setAttribute(SESSION_NAME_LOGIN, lg);
             System.out.println("Session in servlet "+session);
             RequestDispatcher rd=request.getRequestDispatcher("index.jsp");
 	    rd.forward(request,response);

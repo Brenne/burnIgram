@@ -23,6 +23,9 @@ public class LoggedIn {
     public String getUsername(){
         return Username;
     }
+    /**
+     * sets member variable logedin to true
+     */
     public void setLogedin(){
         logedin=true;
     }

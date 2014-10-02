@@ -21,12 +21,12 @@
         <h2>Your world in Black and White</h2>
         </header>
         
-        <nav>
+        <div id="nav">
             <ul>
                 <li class="nav"><a href="/Instagrim/upload.jsp">Upload</a></li>
                 <li class="nav"><a href="/Instagrim/Images/majed">Sample Images</a></li>
             </ul>
-        </nav>
+        </div>
  
         <article>
             <h1>Your Pics</h1>
@@ -43,7 +43,7 @@
                 Pic p = (Pic) iterator.next();
 
         %>
-        <a href="/Instagrim/Image/<%=p.getSUUID()%>" ><img src="/Instagrim/Thumb/<%=p.getSUUID()%>"></a><br/><%
+        <a href="/BurnIgram/Image/<%=p.getSUUID()%>" ><img src="/BurnIgram/Thumb/<%=p.getSUUID()%>"></a><br/><%
 
             }
             }
@@ -51,7 +51,7 @@
         </article>
         <footer>
             <ul>
-                <li class="footer"><a href="/Instagrim">Home</a></li>
+                <li class="footer"><a href="/BurnIgram">Home</a></li>
             </ul>
         </footer>
     </body>

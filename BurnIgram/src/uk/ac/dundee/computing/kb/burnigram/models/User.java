@@ -10,6 +10,8 @@ import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
 
 import uk.ac.dundee.computing.kb.burnigram.lib.AeSimpleSHA1;
+import uk.ac.dundee.computing.kb.burnigram.lib.CassandraHosts;
+import uk.ac.dundee.computing.kb.burnigram.lib.Keyspaces;
 
 import com.datastax.driver.core.BoundStatement;
 import com.datastax.driver.core.Cluster;
@@ -23,22 +25,26 @@ import com.datastax.driver.core.Session;
  * @author Administrator
  */
 public class User {
-	Cluster cluster;
+
+	private Cluster cluster;
 
 	public User() {
+		this.cluster = CassandraHosts.getCluster();
 
 	}
 
 	public boolean registerUser(String username, String Password) {
-		AeSimpleSHA1 sha1handler = new AeSimpleSHA1();
+		if (userNameExists(username)) {
+			return false;
+		}
 		String encodedPassword = null;
 		try {
-			encodedPassword = sha1handler.SHA1(Password);
+			encodedPassword = AeSimpleSHA1.SHA1(Password);
 		} catch (UnsupportedEncodingException | NoSuchAlgorithmException et) {
 			System.out.println("Can't check your password");
 			return false;
 		}
-		Session session = cluster.connect("instagrim");
+		Session session = cluster.connect(Keyspaces.KEYSPACE_NAME);
 		PreparedStatement ps = session
 				.prepare("insert into userprofiles (login,password) Values(?,?)");
 
@@ -52,16 +58,15 @@ public class User {
 		return true;
 	}
 
-	public boolean IsValidUser(String username, String Password) {
-		AeSimpleSHA1 sha1handler = new AeSimpleSHA1();
-		String EncodedPassword = null;
+	public boolean isValidUser(String username, String Password) {
+		String encodedPassword = null;
 		try {
-			EncodedPassword = sha1handler.SHA1(Password);
+			encodedPassword = AeSimpleSHA1.SHA1(Password);
 		} catch (UnsupportedEncodingException | NoSuchAlgorithmException et) {
 			System.out.println("Can't check your password");
 			return false;
 		}
-		Session session = cluster.connect("instagrim");
+		Session session = cluster.connect(Keyspaces.KEYSPACE_NAME);
 		PreparedStatement ps = session
 				.prepare("select password from userprofiles where login =?");
 		ResultSet rs = null;
@@ -77,7 +82,7 @@ public class User {
 			for (Row row : rs) {
 
 				String StoredPass = row.getString("password");
-				if (StoredPass.compareTo(EncodedPassword) == 0)
+				if (StoredPass.compareTo(encodedPassword) == 0)
 					return true;
 			}
 		}
@@ -85,8 +90,22 @@ public class User {
 		return false;
 	}
 
-	public void setCluster(Cluster cluster) {
-		this.cluster = cluster;
+	private boolean checkUserName(String userName) {
+		String Pattern = "^[a-zA-Z0-9_-]{3,15}$";
+		return true;
+
+	}
+
+	private boolean userNameExists(String userName) {
+		Session session = cluster.connect(Keyspaces.KEYSPACE_NAME);
+		PreparedStatement ps = session
+				.prepare("Select login FROM userprofiles where login=?");
+		ResultSet rs = session.execute(ps.bind(userName));
+		if (rs.isExhausted()) {
+			return false;
+		} else {
+			return true;
+		}
 	}
 
 }

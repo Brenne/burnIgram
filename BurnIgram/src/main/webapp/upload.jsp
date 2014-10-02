@@ -34,7 +34,7 @@
         </article>
         <footer>
             <ul>
-                <li class="footer"><a href="/Instagrim">Home</a></li>
+                <li class="footer"><a href="/Burnigram">Home</a></li>
             </ul>
         </footer>
     </body>

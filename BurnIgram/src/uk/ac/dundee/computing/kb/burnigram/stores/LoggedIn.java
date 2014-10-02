@@ -33,7 +33,7 @@ public class LoggedIn {
     public void setLoginState(boolean logedin){
         this.logedin=logedin;
     }
-    public boolean getlogedin(){
+    public boolean getLogedin(){
         return logedin;
     }
 }

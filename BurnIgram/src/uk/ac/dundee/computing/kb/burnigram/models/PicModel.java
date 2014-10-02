@@ -43,7 +43,7 @@ import com.datastax.driver.core.Session;
 
 public class PicModel {
 
-    Cluster cluster;
+    private Cluster cluster;
 
     public PicModel() {
 

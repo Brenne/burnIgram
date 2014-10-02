@@ -20,7 +20,7 @@
         <div id="nav">
             <ul>
                 
-                <li><a href="/Instagrim/Images/majed">Sample Images</a></li>
+                <li><a href="/Burnigram/Images/majed">Sample Images</a></li>
             </ul>
         </div>
        
@@ -38,7 +38,7 @@
         </article>
         <footer>
             <ul>
-                <li class="footer"><a href="/Instagrim">Home</a></li>
+                <li class="footer"><a href="/BurnIgram">Home</a></li>
             </ul>
         </footer>
     </body>

@@ -1,4 +1,4 @@
-package uk.ac.dundee.computing.kb.burnigramservlets;
+package uk.ac.dundee.computing.kb.burnigram.servlets;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
@@ -22,6 +22,8 @@ import javax.servlet.http.Part;
 
 import uk.ac.dundee.computing.kb.burnigram.lib.Convertors;
 import uk.ac.dundee.computing.kb.burnigram.models.PicModel;
+import uk.ac.dundee.computing.kb.burnigram.models.User;
+import uk.ac.dundee.computing.kb.burnigram.stores.Globals;
 import uk.ac.dundee.computing.kb.burnigram.stores.LoggedIn;
 import uk.ac.dundee.computing.kb.burnigram.stores.Pic;
 
@@ -33,7 +35,8 @@ import uk.ac.dundee.computing.kb.burnigram.stores.Pic;
     "/Image/*",
     "/Thumb/*",
     "/Images",
-    "/Images/*"
+    "/Images/*",
+    "/OriginalImage/*"
 })
 @MultipartConfig
 
@@ -53,6 +56,7 @@ public class Image extends HttpServlet {
         CommandsMap.put("Image", 1);
         CommandsMap.put("Images", 2);
         CommandsMap.put("Thumb", 3);
+        CommandsMap.put("OriginalImage",4);
 
     }
 
@@ -79,23 +83,32 @@ public class Image extends HttpServlet {
                 DisplayImage(Convertors.DISPLAY_PROCESSED,args[2], response);
                 break;
             case 2:
+            	//in this case args[2] should contain a username
                 DisplayImageList(args[2], request, response);
                 break;
             case 3:
                 DisplayImage(Convertors.DISPLAY_THUMB,args[2],  response);
                 break;
+            case 4:
+            	DisplayImage(Convertors.DISPLAY_IMAGE, args[2], response);
             default:
                 error("Bad Operator", response);
         }
     }
 
-    private void DisplayImageList(String User, HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        PicModel tm = new PicModel();
-        tm.setCluster();
-        LinkedList<Pic> pictureList = tm.getPicsForUser(User);
-        RequestDispatcher rd = request.getRequestDispatcher("/UsersPics.jsp");
-        request.setAttribute("Pics", pictureList);
-        rd.forward(request, response);
+    private void DisplayImageList(String username, HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        User user = new User();
+        if(!user.userNameExists(username)){
+        	response.sendRedirect(Globals.ROOT_PATH+"/index.jsp");
+        }else{
+        	PicModel tm = new PicModel();
+            tm.setCluster();
+            LinkedList<Pic> pictureList = tm.getPicsForUser(username);
+            RequestDispatcher rd = request.getRequestDispatcher("/UsersPics.jsp");
+            request.setAttribute("Pics", pictureList);
+            rd.forward(request, response);
+        }
+    	
 
     }
 
@@ -146,7 +159,7 @@ public class Image extends HttpServlet {
                 is.close();
             }
             RequestDispatcher rd = request.getRequestDispatcher("/upload.jsp");
-             rd.forward(request, response);
+            rd.forward(request, response);
         }
 
     }

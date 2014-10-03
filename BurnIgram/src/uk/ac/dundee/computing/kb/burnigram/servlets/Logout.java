@@ -1,4 +1,4 @@
-package uk.ac.dundee.computing.kb.burnigramservlets;
+package uk.ac.dundee.computing.kb.burnigram.servlets;
 
 import java.io.IOException;
 import javax.servlet.ServletException;

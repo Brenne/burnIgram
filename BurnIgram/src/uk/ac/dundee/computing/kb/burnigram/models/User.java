@@ -96,7 +96,7 @@ public class User {
 
 	}
 
-	private boolean userNameExists(String userName) {
+	public boolean userNameExists(String userName) {
 		Session session = cluster.connect(Keyspaces.KEYSPACE_NAME);
 		PreparedStatement ps = session
 				.prepare("Select login FROM userprofiles where login=?");

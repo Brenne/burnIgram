@@ -4,7 +4,7 @@
  * and open the template in the editor.
  */
 
-package uk.ac.dundee.computing.kb.burnigramservlets;
+package uk.ac.dundee.computing.kb.burnigram.servlets;
 
 import java.io.IOException;
 

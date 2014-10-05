@@ -27,6 +27,10 @@ import uk.ac.dundee.computing.kb.burnigram.stores.LoggedIn;
 @WebServlet(name = "Login", urlPatterns = { "/Login" })
 public class Login extends HttpServlet {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	public static final String SESSION_NAME_LOGIN = "loggedIn";
 
 	/**
@@ -48,15 +52,14 @@ public class Login extends HttpServlet {
 		String username = request.getParameter("username");
 		String password = request.getParameter("password");
 
-		User us = new User();
-
-		boolean isValid = us.isValidUser(username, password);
-		HttpSession session = request.getSession();
-		System.out.println("Session in servlet " + session);
-		if (isValid) {
+		User user = new User(username,password);
+		
+		if (user.isValidUser()) {
+			HttpSession session = request.getSession();
+			System.out.println("Session in servlet " + session);
 			LoggedIn lg = new LoggedIn();
 			lg.setLogedin();
-			lg.setUsername(username);
+			lg.setUser(user);
 			// request.setAttribute("LoggedIn", lg);
 
 			session.setAttribute(SESSION_NAME_LOGIN, lg);

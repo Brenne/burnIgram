@@ -8,6 +8,7 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.UUID;
 
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletConfig;
@@ -95,6 +96,16 @@ public class Image extends HttpServlet {
                 error("Bad Operator", response);
         }
     }
+    
+    @Override
+    protected void doDelete(HttpServletRequest request, HttpServletResponse resp)
+    		throws ServletException, IOException {
+    	 String args[] = Convertors.SplitRequestPath(request);
+    	 LoggedIn loggedIn = (LoggedIn) request.getSession().getAttribute("loggedIn");
+    	 PicModel picModel = new PicModel();
+    	 picModel.setCluster();
+    	 picModel.deletePic(UUID.fromString(args[2])); 
+    }
 
     private void DisplayImageList(String username, HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         User user = new User();
@@ -146,7 +157,7 @@ public class Image extends HttpServlet {
             LoggedIn lg= (LoggedIn)session.getAttribute(Login.SESSION_NAME_LOGIN);
             String username="majed";
             if (lg.getLogedin()){
-                username=lg.getUsername();
+                username=lg.getUser().getUsername();
             }
             if (i > 0) {
                 byte[] b = new byte[i + 1];

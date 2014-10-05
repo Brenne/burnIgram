@@ -6,22 +6,24 @@
 
 package uk.ac.dundee.computing.kb.burnigram.stores;
 
+import uk.ac.dundee.computing.kb.burnigram.models.User;
+
 /**
  *
  * @author Administrator
  */
 public class LoggedIn {
     boolean logedin=false;
-    String Username=null;
+    private User user=null;
     public void LogedIn(){
         
     }
     
-    public void setUsername(String name){
-        this.Username=name;
+    public void setUser(User user){
+        this.user=user;
     }
-    public String getUsername(){
-        return Username;
+    public User getUser(){
+        return this.user;
     }
     /**
      * sets member variable logedin to true

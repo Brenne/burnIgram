@@ -18,7 +18,7 @@ public final class Keyspaces {
         try {
             //Add some keyspaces here
             String createkeyspace = "create keyspace if not exists "+KEYSPACE_NAME+"  WITH replication = {'class':'SimpleStrategy', 'replication_factor':1}";
-            String CreatePicTable = "CREATE TABLE if not exists instagrim.Pics ("
+            String CreatePicTable = "CREATE TABLE if not exists "+KEYSPACE_NAME+".Pics ("
                     + " user varchar,"
                     + " picid uuid, "
                     + " interaction_time timestamp,"
@@ -28,7 +28,7 @@ public final class Keyspaces {
                     + " processed blob,"
                     + " imagelength int,"
                     + " thumblength int,"
-                    + "  processedlength int,"
+                    + " processedlength int,"
                     + " type  varchar,"
                     + " name  varchar,"
                     + " PRIMARY KEY (picid)"
@@ -45,12 +45,14 @@ public final class Keyspaces {
                     + "      zip int\n"
                     + "  );";
             String CreateUserProfile = "CREATE TABLE if not exists "+KEYSPACE_NAME+".userprofiles (\n"
-                    + "      login text PRIMARY KEY,\n"
-                     + "     password text,\n"
+                    + "      login varchar PRIMARY KEY,\n"
+                    + "     password text,\n"
+                    + "		salt varchar,\n"	
                     + "      first_name text,\n"
                     + "      last_name text,\n"
                     + "      email set<text>,\n"
-                    + "      addresses  map<text, frozen <address>>\n"
+                    + "      addresses  map<text, frozen <address>>,\n"
+                    + " 	profilepic uuid \n"
                     + "  );";
             Session session = c.connect();
             try {

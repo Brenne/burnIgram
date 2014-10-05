@@ -16,6 +16,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import uk.ac.dundee.computing.kb.burnigram.models.User;
+import uk.ac.dundee.computing.kb.burnigram.stores.Globals;
 
 /**
  *
@@ -44,14 +45,17 @@ public class Register extends HttpServlet {
 	@Override
 	protected void doPost(HttpServletRequest request,
 			HttpServletResponse response) throws ServletException, IOException {
-		String username = request.getParameter("username");
-		String password = request.getParameter("password");
+		String username   = request.getParameter("username");
+		String password   = request.getParameter("password");
+		String email 	  = request.getParameter("email");
+		String firstname  = request.getParameter("firstname");
+		String secondname = request.getParameter("secondname");
 
-		User user = new User();
-		if (user.registerUser(username, password)) {
-			response.sendRedirect("/Burnigram");
+		User user = new User(username,firstname,secondname,email,password);
+		if (user.registerUser()) {
+			response.sendRedirect(Globals.ROOT_PATH);
 		} else {
-			response.sendRedirect("/Burnigram/register.jsp");
+			response.sendRedirect(Globals.ROOT_PATH+"/register.jsp");
 		}
 
 	}

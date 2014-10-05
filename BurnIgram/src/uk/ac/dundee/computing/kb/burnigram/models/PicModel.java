@@ -32,6 +32,9 @@ import org.imgscalr.Scalr.Method;
 //import uk.ac.dundee.computing.aec.stores.TweetStore;
 
 
+
+
+
 import uk.ac.dundee.computing.kb.burnigram.lib.CassandraHosts;
 import uk.ac.dundee.computing.kb.burnigram.lib.Convertors;
 import uk.ac.dundee.computing.kb.burnigram.lib.Keyspaces;
@@ -40,9 +43,12 @@ import uk.ac.dundee.computing.kb.burnigram.stores.Pic;
 import com.datastax.driver.core.BoundStatement;
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.PreparedStatement;
+import com.datastax.driver.core.RegularStatement;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
+import com.datastax.driver.core.SimpleStatement;
+import com.sun.org.apache.xerces.internal.impl.xpath.regex.RegularExpression;
 
 public class PicModel {
 
@@ -187,14 +193,22 @@ public class PicModel {
 		}
 		return Pics;
 	}
+	
+	public void deletePic(java.util.UUID picid){
+		Session session = cluster.connect(Keyspaces.KEYSPACE_NAME);
+		PreparedStatement ps =  session.prepare("DELETE FROM userpics WHERE picid=?");
+		ResultSet rs = session.execute(ps.bind(picid));
+		PreparedStatement ps1 =  session.prepare("DELETE FROM pics WHERE picid=?");
+		ResultSet rs1 = session.execute(ps.bind(picid));
+		session.close();
+	}
 
 	public Pic getPic(int image_type, java.util.UUID picid) {
-		Session session = cluster.connect("instagrim");
+		Session session = cluster.connect(Keyspaces.KEYSPACE_NAME);
 		ByteBuffer bImage = null;
 		String type = null;
 		int length = 0;
 		try {
-			Convertors convertor = new Convertors();
 			ResultSet rs = null;
 			PreparedStatement ps = null;
 
@@ -243,6 +257,7 @@ public class PicModel {
 		session.close();
 		Pic p = new Pic();
 		p.setPic(bImage, length, type);
+		p.setUUID(picid);
 
 		return p;
 

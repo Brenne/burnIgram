@@ -34,11 +34,11 @@ public final class Keyspaces {
                     + " PRIMARY KEY (picid)"
                     + ")";
             String Createuserpiclist = "CREATE TABLE if not exists "+KEYSPACE_NAME+".userpiclist (\n"
-                    + "picid uuid,\n"
-                    + "user varchar,\n"
-                    + "pic_added timestamp,\n"
-                    + "PRIMARY KEY (user,pic_added)\n"
-                    + ") WITH CLUSTERING ORDER BY (pic_added desc);";
+	            + "picid uuid,\n"
+	            + "user varchar,\n"
+	            + "pic_added timestamp,\n"
+	            + "PRIMARY KEY (user,pic_added)\n"
+	            + ") WITH CLUSTERING ORDER BY (pic_added desc);";
             String CreateAddressType = "CREATE TYPE if not exists "+KEYSPACE_NAME+".address (\n"
                     + "      street text,\n"
                     + "      city text,\n"

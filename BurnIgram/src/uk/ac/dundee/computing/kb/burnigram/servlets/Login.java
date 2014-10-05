@@ -52,9 +52,10 @@ public class Login extends HttpServlet {
 		String username = request.getParameter("username");
 		String password = request.getParameter("password");
 
-		User user = new User(username,password);
+		User user = new User(username);
 		
-		if (user.isValidUser()) {
+		if (user.isValidUser(password)) {
+			user.initUserFromDB();
 			HttpSession session = request.getSession();
 			System.out.println("Session in servlet " + session);
 			LoggedIn lg = new LoggedIn();

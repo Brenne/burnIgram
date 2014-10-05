@@ -1,17 +1,5 @@
 package uk.ac.dundee.computing.kb.burnigram.models;
 
-/*
- * Expects a cassandra columnfamily defined as
- * use keyspace2;
- CREATE TABLE Tweets (
- user varchar,
- interaction_time timeuuid,
- tweet varchar,
- PRIMARY KEY (user,interaction_time)
- ) WITH CLUSTERING ORDER BY (interaction_time DESC);
- * To manually generate a UUID use:
- * http://www.famkruithof.net/uuid/uuidgen
- */
 import static org.imgscalr.Scalr.OP_ANTIALIAS;
 import static org.imgscalr.Scalr.OP_GRAYSCALE;
 import static org.imgscalr.Scalr.pad;
@@ -24,31 +12,27 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Date;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.Set;
+import java.util.UUID;
 
 import javax.imageio.ImageIO;
 
 import org.imgscalr.Scalr.Method;
 
+import com.datastax.driver.core.BoundStatement;
+import com.datastax.driver.core.Cluster;
+import com.datastax.driver.core.PreparedStatement;
+import com.datastax.driver.core.ResultSet;
+import com.datastax.driver.core.Row;
+import com.datastax.driver.core.Session;
+
 //import uk.ac.dundee.computing.aec.stores.TweetStore;
-
-
-
-
-
 import uk.ac.dundee.computing.kb.burnigram.lib.CassandraHosts;
 import uk.ac.dundee.computing.kb.burnigram.lib.Convertors;
 import uk.ac.dundee.computing.kb.burnigram.lib.Keyspaces;
 import uk.ac.dundee.computing.kb.burnigram.stores.Pic;
-
-import com.datastax.driver.core.BoundStatement;
-import com.datastax.driver.core.Cluster;
-import com.datastax.driver.core.PreparedStatement;
-import com.datastax.driver.core.RegularStatement;
-import com.datastax.driver.core.ResultSet;
-import com.datastax.driver.core.Row;
-import com.datastax.driver.core.Session;
-import com.datastax.driver.core.SimpleStatement;
-import com.sun.org.apache.xerces.internal.impl.xpath.regex.RegularExpression;
 
 public class PicModel {
 
@@ -61,9 +45,9 @@ public class PicModel {
 	public void setCluster(Cluster cluster) {
 		this.cluster = cluster;
 	}
-	
-	public void setCluster(){
-		this.cluster=CassandraHosts.getCluster();
+
+	public void setCluster() {
+		this.cluster = CassandraHosts.getCluster();
 	}
 
 	/**
@@ -72,10 +56,11 @@ public class PicModel {
 	 * @param contentType
 	 * @param name
 	 *            Filename of Picture
-	 * @param user
+	 * @param username
 	 *            Name of the User
 	 */
-	public void insertPic(byte[] b, String contentType, String name, String user) {
+	public void insertPic(byte[] b, String contentType, String name,
+			String username) {
 		try {
 
 			String types[] = Convertors.SplitFiletype(contentType);
@@ -97,21 +82,21 @@ public class PicModel {
 			byte[] processedb = picdecolour(picid.toString(), types[1]);
 			ByteBuffer processedbuf = ByteBuffer.wrap(processedb);
 			int processedlength = processedb.length;
+
+			Date currentTimestamp = new Date();
+
 			Session session = cluster.connect(Keyspaces.KEYSPACE_NAME);
 
 			PreparedStatement psInsertPic = session
 					.prepare("insert into pics ( picid, image,thumb,processed, user, interaction_time,imagelength,thumblength,processedlength,type,name) values(?,?,?,?,?,?,?,?,?,?,?)");
 			PreparedStatement psInsertPicToUser = session
 					.prepare("insert into userpiclist ( picid, user, pic_added) values(?,?,?)");
-			BoundStatement bsInsertPic = new BoundStatement(psInsertPic);
-			BoundStatement bsInsertPicToUser = new BoundStatement(
-					psInsertPicToUser);
 
-			Date DateAdded = new Date();
-			session.execute(bsInsertPic.bind(picid, buffer, thumbbuf,
-					processedbuf, user, DateAdded, length, thumblength,
-					processedlength, contentType, name));
-			session.execute(bsInsertPicToUser.bind(picid, user, DateAdded));
+			session.execute(psInsertPic.bind(picid, buffer, thumbbuf,
+					processedbuf, username, currentTimestamp, length,
+					thumblength, processedlength, contentType, name));
+			session.execute(psInsertPicToUser.bind(picid, username,
+					currentTimestamp));
 			session.close();
 
 		} catch (IOException ex) {
@@ -166,100 +151,123 @@ public class PicModel {
 		return pad(img, 4);
 	}
 
-	public java.util.LinkedList<Pic> getPicsForUser(String User) {
-		java.util.LinkedList<Pic> Pics = new java.util.LinkedList<>();
+	public LinkedList<Pic> getPicsForUser(String username) {
+		LinkedList<Pic> picList = new LinkedList<>();
 		Session session = cluster.connect(Keyspaces.KEYSPACE_NAME);
 
 		PreparedStatement ps = session
 				.prepare("SELECT picid FROM userpiclist WHERE user =?");
 		ResultSet rs = null;
-		BoundStatement boundStatement = new BoundStatement(ps);
+
 		rs = session.execute( // this is where the query is executed
-				boundStatement.bind( // here you are binding the
-										// 'boundStatement'
-						User));
+				ps.bind( // here you are binding the
+							// 'boundStatement'
+				username));
 		if (rs.isExhausted()) {
 			System.out.println("No Images returned");
 			return null;
 		} else {
 			for (Row row : rs) {
+				UUID picid = row.getUUID("picid");
 				Pic pic = new Pic();
-				java.util.UUID UUID = row.getUUID("picid");
-				System.out.println("UUID" + UUID.toString());
-				pic.setUUID(UUID);
-				Pics.add(pic);
-
+				System.out.println("UUID" + picid.toString());
+				pic.setUUID(picid);
+				picList.add(pic);
 			}
 		}
-		return Pics;
+		return picList;
 	}
-	
-	public void deletePic(java.util.UUID picid){
+
+	public void deletePic(Pic pic) {
 		Session session = cluster.connect(Keyspaces.KEYSPACE_NAME);
-		PreparedStatement ps =  session.prepare("DELETE FROM userpics WHERE picid=?");
-		ResultSet rs = session.execute(ps.bind(picid));
-		PreparedStatement ps1 =  session.prepare("DELETE FROM pics WHERE picid=?");
-		ResultSet rs1 = session.execute(ps.bind(picid));
+		PreparedStatement ps1 = session
+				.prepare("DELETE FROM pics WHERE picid=?");
+		ResultSet rs1 = session.execute(ps1.bind(pic.getUUID()));
+		PreparedStatement ps2 = session
+				.prepare("DELETE FROM userpiclist WHERE pic_added=?"
+						+ " AND user=?");
+		ResultSet rs2 = session.execute(ps2.bind(pic.getDate(), pic.getUser()
+				.getUsername()));
+
 		session.close();
 	}
 
-	public Pic getPic(int image_type, java.util.UUID picid) {
+	public Pic getPicFromDB(int image_type, java.util.UUID picid) {
 		Session session = cluster.connect(Keyspaces.KEYSPACE_NAME);
-		ByteBuffer bImage = null;
-		String type = null;
-		int length = 0;
+
 		try {
 			ResultSet rs = null;
 			PreparedStatement ps = null;
+			final String PREFIX_QUERY = "SELECT type, interaction_time, user, name, ";
+			final String POSTFIX_QUERY = " FROM pics WHERE picid=?";
+			switch (image_type) {
+			case Convertors.DISPLAY_IMAGE:
+				ps = session.prepare(PREFIX_QUERY + "image,imagelength"
+						+ POSTFIX_QUERY);
+				break;
+			case Convertors.DISPLAY_THUMB:
+				ps = session.prepare(PREFIX_QUERY + "thumb,thumblength"
+						+ POSTFIX_QUERY);
+				break;
+			case Convertors.DISPLAY_PROCESSED:
+				ps = session.prepare(PREFIX_QUERY + "processed,processedlength"
+						+ POSTFIX_QUERY);
+				break;
+			default:
+				System.err.println("getPicFromDB invalid image_type 1"
+						+ Integer.toString(image_type));
 
-			if (image_type == Convertors.DISPLAY_IMAGE) {
-
-				ps = session
-						.prepare("select image,imagelength,type from pics where picid =?");
-			} else if (image_type == Convertors.DISPLAY_THUMB) {
-				ps = session
-						.prepare("select thumb,thumblength,type from pics where picid =?");
-			} else if (image_type == Convertors.DISPLAY_PROCESSED) {
-				ps = session
-						.prepare("select processed,processedlength,type from pics where picid =?");
 			}
-			BoundStatement boundStatement = new BoundStatement(ps);
 			rs = session.execute( // this is where the query is executed
-					boundStatement.bind( // here you are binding the
-											// 'boundStatement'
-							picid));
+					ps.bind(picid));
 
 			if (rs.isExhausted()) {
 				System.out.println("No Images returned");
 				return null;
 			} else {
-				for (Row row : rs) {
-					if (image_type == Convertors.DISPLAY_IMAGE) {
-						bImage = row.getBytes("image");
-						length = row.getInt("imagelength");
-					} else if (image_type == Convertors.DISPLAY_THUMB) {
-						bImage = row.getBytes("thumb");
-						length = row.getInt("thumblength");
-
-					} else if (image_type == Convertors.DISPLAY_PROCESSED) {
-						bImage = row.getBytes("processed");
-						length = row.getInt("processedlength");
-					}
-
-					type = row.getString("type");
+				ByteBuffer bImage = null;
+				int length = 0;
+				Row row = rs.one();
+				switch (image_type) {
+				case Convertors.DISPLAY_IMAGE:
+					bImage = row.getBytes("image");
+					length = row.getInt("imagelength");
+					break;
+				case Convertors.DISPLAY_THUMB:
+					bImage = row.getBytes("thumb");
+					length = row.getInt("thumblength");
+					break;
+				case Convertors.DISPLAY_PROCESSED:
+					bImage = row.getBytes("processed");
+					length = row.getInt("processedlength");
+					break;
+				default:
+					System.err.println("getPicFromDB invalid image_type 2"
+							+ Integer.toString(image_type));
+					return null;
 
 				}
+
+				String type = row.getString("type");
+				Date date = row.getDate("interaction_time");
+				User user = User.initUserFromDB(row.getString("user"));
+				String picname = row.getString("name");
+				session.close();
+				Pic p = new Pic();
+				p.setPic(bImage, length, type, date, user, picname);
+				p.setUUID(picid);
+				if (!rs.isExhausted()) {
+					// should never happen.
+					System.out
+							.println("More than one row in with same picid in pics?");
+				}
+				return p;
+
 			}
 		} catch (Exception et) {
-			System.out.println("Can't get Pic" + et);
+			System.err.println("Can't get Pic" + et);
 			return null;
 		}
-		session.close();
-		Pic p = new Pic();
-		p.setPic(bImage, length, type);
-		p.setUUID(picid);
-
-		return p;
 
 	}
 

@@ -2,25 +2,26 @@
 	class="uk.ac.dundee.computing.kb.burnigram.stores.LoggedIn"
 	scope="session" />
 <%@ page import="uk.ac.dundee.computing.kb.burnigram.stores.Globals" %>
+
 <div id="nav">
 	<ul>
-		<li><a href="index.jsp">Home</a></li>
+		<li><a href="${Globals.root_path}/index.jsp">Home</a></li>
 
-		
+
 		<%
 			if (!loggedIn.getLogedin()) {
 		%>
-		<li><a href="<%=Globals.ROOT_PATH %>/register.jsp">Sign up</a></li>
-		<li><a href="<%=Globals.ROOT_PATH %>/login.jsp">Sign in</a></li>
+		<li><a href="${Globals.root_path}/register.jsp">Sign up</a></li>
+		<li><a href="${Globals.root_path}/login.jsp">Sign in</a></li>
 		<%
 			//if logged in
 			} else {
 		%>
-		<li><a href="<%=Globals.ROOT_PATH%>/profile.jsp">Profile</a></li>
-		<li><a href="<%=Globals.ROOT_PATH %>/upload.jsp">Upload</a></li>
-		<li><a href="<%=Globals.ROOT_PATH %>/Images/<%=loggedIn.getUser().getUsername()%>">
+		<li><a href="${Globals.root_path}/profile.jsp">Profile</a></li>
+		<li><a href="${Globals.root_path}/upload.jsp">Upload</a></li>
+		<li><a href="${Globals.root_path}/Images/<%=loggedIn.getUser().getUsername()%>">
 				Your Images</a></li>
-		<li><a href="<%=Globals.ROOT_PATH %>/Logout">Sign Out</a></li>
+		<li><a href="${Globals.root_path}>/Logout">Sign Out</a></li>
 		<%
 			}
 		%>

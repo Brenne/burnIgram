@@ -8,6 +8,8 @@ package uk.ac.dundee.computing.kb.burnigram.models;
 
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import java.util.UUID;
 
 import uk.ac.dundee.computing.kb.burnigram.lib.AeSimpleSHA1;
@@ -31,7 +33,6 @@ public class User {
 
 	private Cluster cluster;
 	private String username;
-	private String password;
 	private String firstname;
 	private String lastname;
 	private String email;
@@ -43,17 +44,17 @@ public class User {
 	}
 
 	public User(String username, String firstname, String lastname,
-			String email, String password) {
-		this(username, password);
+			String email) {
+		this(username);
 		this.firstname = firstname;
 		this.lastname = lastname;
+		this.email = email;
 
 	}
 
-	public User(String username, String password) {
+	public User(String username) {
 		this();
-		this.username = username;
-		this.password = password;
+		this.username = username;	
 	}
 
 	public String getUsername() {
@@ -72,19 +73,19 @@ public class User {
 		return email;
 	}
 
-	public UUID getProfilepic() {
+	public UUID getProfilepicId() {
 		return profilepic;
 	}
 
-	public boolean registerUser() {
+	public boolean registerUser(String password) {
 
-		if (isUserNameOrPasswordEmpty() | !validUserName(this.username)
-				| userNameExists(this.username)) {
+		if (this.username == null || !validUserName(this.username)
+				|| userNameExists(this.username)) {
 			return false;
 		}
 		String encodedPassword = null;
 		try {
-			encodedPassword = AeSimpleSHA1.SHA1(this.password);
+			encodedPassword = AeSimpleSHA1.SHA1(password);
 		} catch (UnsupportedEncodingException | NoSuchAlgorithmException et) {
 			System.out.println("Can't check your password");
 			return false;
@@ -94,24 +95,24 @@ public class User {
 				+ "(login,password,first_name,last_name,email) "
 				+ "Values(?,?,?,?,?)");
 
-		BoundStatement boundStatement = new BoundStatement(ps);
+		Set<String> email = new LinkedHashSet<String>(1);
+		email.add(this.email);
 		session.execute( // this is where the query is executed
-		boundStatement.bind(
-				// here you are binding the 'boundStatement'
-				this.username, encodedPassword, this.firstname, this.lastname,
-				this.email));
-		// We are assuming this always works. Also a transaction would be good
-		// here !
+
+		ps.bind(
+		// here you are binding the 'boundStatement'
+		this.username, encodedPassword, this.firstname, this.lastname, email));
+		// TODO handle false
 		session.close();
 		return true;
 	}
 
-	public boolean isValidUser() {
-		if(isUserNameOrPasswordEmpty())
+	public boolean isValidUser(String password) {
+		if (this.username==null)
 			return false;
 		String encodedPassword = null;
 		try {
-			encodedPassword = AeSimpleSHA1.SHA1(this.password);
+			encodedPassword = AeSimpleSHA1.SHA1(password);
 		} catch (UnsupportedEncodingException | NoSuchAlgorithmException et) {
 			System.out.println("Can't check your password");
 			return false;
@@ -129,12 +130,12 @@ public class User {
 		if (rs.isExhausted()) {
 			System.out.println("No user  match");
 			return false;
-		}else{
+		} else {
 			Row userEntry = rs.one();
 			String dbPassword = userEntry.getString("password");
-			if(dbPassword.equals(encodedPassword)){
+			if (dbPassword.equals(encodedPassword)) {
 				return true;
-			}else{
+			} else {
 				return false;
 			}
 		}
@@ -149,11 +150,16 @@ public class User {
 
 	}
 
-	public boolean userNameExists(String userName) {
+	public static boolean userNameExists(String userName){
+		User user = new User(userName);
+		return user.userNameExists();
+	}
+	
+	public boolean userNameExists() {
 		Session session = cluster.connect(Keyspaces.KEYSPACE_NAME);
 		PreparedStatement ps = session
 				.prepare("Select login FROM userprofiles where login=?");
-		ResultSet rs = session.execute(ps.bind(userName));
+		ResultSet rs = session.execute(ps.bind(this.username));
 		session.close();
 		if (rs.isExhausted()) {
 			return false;
@@ -161,37 +167,56 @@ public class User {
 			return true;
 		}
 	}
-	
-	public boolean changeProfilepic(Pic picture){
-		if(!userNameExists(this.username)){
+
+	public boolean changeProfilepic(Pic picture) {
+		if (!userNameExists(this.username)) {
 			return false;
-		}else{
+		} else {
 			Session session = cluster.connect(Keyspaces.KEYSPACE_NAME);
-			PreparedStatement ps = session
-					.prepare("UPDATE userprofiles "
-							+ " SET profilepic=? WHERE login=?");
-			ResultSet rs = session.execute(ps.bind(picture.getUUID(),this.username));
-			this.profilepic=picture.getUUID();
+			PreparedStatement ps = session.prepare("UPDATE userprofiles "
+					+ " SET profilepic=? WHERE login=?");
+			ResultSet rs = session.execute(ps.bind(picture.getUUID(),
+					this.username));
+			this.profilepic = picture.getUUID();
 			session.close();
 			return true;
 		}
 	}
 
-	private boolean isUserNameOrPasswordEmpty() {
-		if (this.username == null | this.username.isEmpty()
-				| this.password == null | this.password.isEmpty())
-			return true;
-		else
-			return false;
+	public static User initUserFromDB(String userName) {
+		User user = new User();
+		user.username = userName;
+		user.initUserFromDB();
+		return user;
 	}
-	
-//	@Override
-//	protected void finalize() throws Throwable {
-//		
-//		if(this.cluster != null && !this.cluster.isClosed()){
-//			this.cluster.close();
-//		}
-//		super.finalize();
-//	}
+
+	public void initUserFromDB() {
+
+		Session session = cluster.connect(Keyspaces.KEYSPACE_NAME);
+		PreparedStatement ps = session
+				.prepare("SELECT * FROM userprofiles WHERE login=?");
+		ResultSet rsUser = session.execute(ps.bind(this.getUsername()));
+		if (!rsUser.isExhausted()) {
+			Row rowUser = rsUser.one();
+			this.firstname = rowUser.getString("first_name");
+			this.lastname = rowUser.getString("last_name");
+			Set<String> emailSet = rowUser.getSet("email", String.class);
+			this.email = emailSet.toString();
+			this.profilepic = rowUser.getUUID("profilepic");
+
+		}
+
+	}
+
+
+
+	// @Override
+	// protected void finalize() throws Throwable {
+	//
+	// if(this.cluster != null && !this.cluster.isClosed()){
+	// this.cluster.close();
+	// }
+	// super.finalize();
+	// }
 
 }

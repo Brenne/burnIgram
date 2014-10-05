@@ -49,13 +49,14 @@ public class Register extends HttpServlet {
 		String password   = request.getParameter("password");
 		String email 	  = request.getParameter("email");
 		String firstname  = request.getParameter("firstname");
-		String secondname = request.getParameter("secondname");
+		String lastname = request.getParameter("secondname");
 
-		User user = new User(username,firstname,secondname,email,password);
-		if (user.registerUser()) {
+		User user = new User(username,firstname,lastname,email);
+		if (user.registerUser(password)) {
 			response.sendRedirect(Globals.ROOT_PATH);
 		} else {
-			response.sendRedirect(Globals.ROOT_PATH+"/register.jsp");
+//			request.setAttribute("errorMessage", "Incorrect Username");
+			response.sendRedirect("register.jsp");
 		}
 
 	}

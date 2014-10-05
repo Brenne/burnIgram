@@ -56,7 +56,7 @@ public class Profile extends HttpServlet {
 				UUID pictureId = UUID.fromString(args[3]);
 				PicModel pictureModel = new PicModel();
 				pictureModel.setCluster();
-				Pic picture = pictureModel.getPic(Convertors.DISPLAY_IMAGE, pictureId);
+				Pic picture = pictureModel.getPicFromDB(Convertors.DISPLAY_IMAGE, pictureId);
 				loggedIn.getUser().changeProfilepic(picture);
 				
 				

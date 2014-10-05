@@ -6,7 +6,7 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<title><%=Globals.APP_NAME%> - Profile</title>
+<title>${Globals.app_name} - Profile</title>
 
 </head>
 <body>
@@ -16,7 +16,9 @@
 	<jsp:include page="include/header.jsp" />
 	<jsp:include page="include/navigation.jsp" />
 	Welcome to your profile
-	<%=loggedIn.getUser().getUsername() %>
+	<%=loggedIn.getUser().getUsername() %><br>
+	<%=loggedIn.getUser().getFirstname()%> <%=loggedIn.getUser().getLastname()%><br>
+	<img src="<%=Globals.ROOT_PATH%>/Image/<%=loggedIn.getUser().getProfilepicId()%>">
 
 </body>
 </html>

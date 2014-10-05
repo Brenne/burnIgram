@@ -5,7 +5,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.UUID;
@@ -32,7 +31,6 @@ import uk.ac.dundee.computing.kb.burnigram.stores.Pic;
  * Servlet implementation class Image
  */
 @WebServlet(urlPatterns = {
-    "/Image",
     "/Image/*",
     "/Thumb/*",
     "/Images",
@@ -72,11 +70,15 @@ public class Image extends HttpServlet {
      */
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String args[] = Convertors.SplitRequestPath(request);
+        if(args.length<=2){
+        	response.setStatus(HttpServletResponse.SC_NO_CONTENT);
+        	return;
+        }
         int command;
         try {
             command = (Integer) CommandsMap.get(args[1]);
         } catch (Exception et) {
-            error("Bad Operator", response);
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             return;
         }
         switch (command) {
@@ -84,8 +86,11 @@ public class Image extends HttpServlet {
                 DisplayImage(Convertors.DISPLAY_PROCESSED,args[2], response);
                 break;
             case 2:
-            	//in this case args[2] should contain a username
-                DisplayImageList(args[2], request, response);
+            	if(User.userNameExists(args[2])){
+            		DisplayImageList(args[2], request, response);
+            	}else{
+            		response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            	}
                 break;
             case 3:
                 DisplayImage(Convertors.DISPLAY_THUMB,args[2],  response);
@@ -93,7 +98,7 @@ public class Image extends HttpServlet {
             case 4:
             	DisplayImage(Convertors.DISPLAY_IMAGE, args[2], response);
             default:
-                error("Bad Operator", response);
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
         }
     }
     
@@ -104,12 +109,12 @@ public class Image extends HttpServlet {
     	 LoggedIn loggedIn = (LoggedIn) request.getSession().getAttribute("loggedIn");
     	 PicModel picModel = new PicModel();
     	 picModel.setCluster();
-    	 picModel.deletePic(UUID.fromString(args[2])); 
+    	 Pic pic = picModel.getPicFromDB(Convertors.DISPLAY_IMAGE, UUID.fromString(args[2]));
+    	 picModel.deletePic(pic); 
     }
 
     private void DisplayImageList(String username, HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        User user = new User();
-        if(!user.userNameExists(username)){
+        if(!User.userNameExists(username)){
         	response.sendRedirect(Globals.ROOT_PATH+"/index.jsp");
         }else{
         	PicModel tm = new PicModel();
@@ -126,22 +131,30 @@ public class Image extends HttpServlet {
     private void DisplayImage(int type,String Image, HttpServletResponse response) throws ServletException, IOException {
         PicModel tm = new PicModel();
         tm.setCluster();
-  
-        
-        Pic p = tm.getPic(type,java.util.UUID.fromString(Image));
-        
-        OutputStream out = response.getOutputStream();
-
-        response.setContentType(p.getType());
-        response.setContentLength(p.getLength());
-        //out.write(Image);
-        InputStream is = new ByteArrayInputStream(p.getBytes());
-        BufferedInputStream input = new BufferedInputStream(is);
-        byte[] buffer = new byte[8192];
-        for (int length = 0; (length = input.read(buffer)) > 0;) {
-            out.write(buffer, 0, length);
+        Pic p = null;
+        try{
+        	p = tm.getPicFromDB(type,java.util.UUID.fromString(Image));
+        }catch(IllegalArgumentException Ex){
+        	response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+        	return;
         }
-        out.close();
+        if(p==null){
+        	response.sendError(HttpServletResponse.SC_NOT_FOUND);
+        }else{
+        	OutputStream out = response.getOutputStream();
+
+            response.setContentType(p.getType());
+            response.setContentLength(p.getLength());
+            //out.write(Image);
+            InputStream is = new ByteArrayInputStream(p.getBytes());
+            BufferedInputStream input = new BufferedInputStream(is);
+            byte[] buffer = new byte[8192];
+            for (int length = 0; (length = input.read(buffer)) > 0;) {
+                out.write(buffer, 0, length);
+            }
+            out.close();
+        }
+        
     }
     
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -175,13 +188,4 @@ public class Image extends HttpServlet {
 
     }
 
-    private void error(String mess, HttpServletResponse response) throws ServletException, IOException {
-
-        PrintWriter out = null;
-        out = new PrintWriter(response.getOutputStream());
-        out.println("<h1>You have an error in your input</h1>");
-        out.println("<h2>" + mess + "</h2>");
-        out.close();
-        return;
-    }
 }

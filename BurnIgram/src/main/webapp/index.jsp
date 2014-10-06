@@ -11,6 +11,8 @@
 <head>
 <title>${Globals.app_name}></title>
 <link rel="stylesheet" type="text/css" href="Styles.css" />
+<link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+<link rel="icon" href="favicon.ico" type="image/x-icon">
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 </head>
 <body>

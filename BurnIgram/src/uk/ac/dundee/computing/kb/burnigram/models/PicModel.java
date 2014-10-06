@@ -6,37 +6,57 @@ import static org.imgscalr.Scalr.pad;
 import static org.imgscalr.Scalr.resize;
 
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.Collections;
 import java.util.Date;
-import java.util.LinkedHashSet;
 import java.util.LinkedList;
-import java.util.Set;
+import java.util.List;
+import java.util.Map.Entry;
 import java.util.UUID;
 
 import javax.imageio.ImageIO;
 
 import org.imgscalr.Scalr.Method;
+import org.imgscalr.Scalr.Rotation;
 
-import com.datastax.driver.core.BoundStatement;
+import uk.ac.dundee.computing.kb.burnigram.lib.CassandraHosts;
+import uk.ac.dundee.computing.kb.burnigram.lib.Convertors;
+import uk.ac.dundee.computing.kb.burnigram.lib.Keyspaces;
+import uk.ac.dundee.computing.kb.burnigram.stores.Pic;
+
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
 
-//import uk.ac.dundee.computing.aec.stores.TweetStore;
-import uk.ac.dundee.computing.kb.burnigram.lib.CassandraHosts;
-import uk.ac.dundee.computing.kb.burnigram.lib.Convertors;
-import uk.ac.dundee.computing.kb.burnigram.lib.Keyspaces;
-import uk.ac.dundee.computing.kb.burnigram.stores.Pic;
-
 public class PicModel {
 
 	private Cluster cluster;
+
+	private static final String ROTATE = "rotate";
+	private static final String BRIGHTNESS = "brightness";
+	private static final String LEFT = "left";
+	private static final String RIGHT = "right";
+
+	private static final List<String> manipulationKeyList;
+	static {
+		LinkedList<String> myList = new LinkedList<String>();
+		myList.add(ROTATE);
+		myList.add(BRIGHTNESS);
+		manipulationKeyList = Collections.unmodifiableList(myList);
+	}
+
+	private static final List<String> rotationOperationsList;
+	static {
+		LinkedList<String> myList = new LinkedList<String>();
+		myList.add(LEFT);
+		myList.add(RIGHT);
+		rotationOperationsList = Collections.unmodifiableList(myList);
+	}
 
 	public PicModel() {
 
@@ -64,37 +84,37 @@ public class PicModel {
 		try {
 
 			String types[] = Convertors.SplitFiletype(contentType);
-			ByteBuffer buffer = ByteBuffer.wrap(b);
-			int length = b.length;
+
 			java.util.UUID picid = Convertors.getTimeUUID();
 
-			// The following is a quick and dirty way of doing this, will fill
-			// the disk quickly !
-			Boolean success = (new File("/var/tmp/instagrim/")).mkdirs();
-			FileOutputStream output = new FileOutputStream(new File(
-					"/var/tmp/instagrim/" + picid));
+			ByteArrayInputStream is = new ByteArrayInputStream(b);
+			BufferedImage bufferedImg = ImageIO
+					.read(new ByteArrayInputStream(b));
+			ByteBuffer imageInByte = ByteBuffer.wrap(b);
+			is.close();
+			// Creating thumbnail image
+			BufferedImage thumbnail = createThumbnail(bufferedImg);
+			byte[] thumbInByte = bufferedImageToByteArray(thumbnail, types[1]);
+			ByteBuffer thumbbuf = ByteBuffer.wrap(thumbInByte);
 
-			output.write(b);
-			output.close();
-			byte[] thumbb = picresize(picid.toString(), types[1]);
-			int thumblength = thumbb.length;
-			ByteBuffer thumbbuf = ByteBuffer.wrap(thumbb);
-			byte[] processedb = picdecolour(picid.toString(), types[1]);
-			ByteBuffer processedbuf = ByteBuffer.wrap(processedb);
-			int processedlength = processedb.length;
+			// Creating processed image
+			BufferedImage processed = createProcessed(bufferedImg);
+			byte[] processedInByte = bufferedImageToByteArray(processed,
+					types[1]);
+			ByteBuffer processedbuf = ByteBuffer.wrap(processedInByte);
 
 			Date currentTimestamp = new Date();
 
 			Session session = cluster.connect(Keyspaces.KEYSPACE_NAME);
-
 			PreparedStatement psInsertPic = session
 					.prepare("insert into pics ( picid, image,thumb,processed, user, interaction_time,imagelength,thumblength,processedlength,type,name) values(?,?,?,?,?,?,?,?,?,?,?)");
 			PreparedStatement psInsertPicToUser = session
 					.prepare("insert into userpiclist ( picid, user, pic_added) values(?,?,?)");
 
-			session.execute(psInsertPic.bind(picid, buffer, thumbbuf,
-					processedbuf, username, currentTimestamp, length,
-					thumblength, processedlength, contentType, name));
+			session.execute(psInsertPic.bind(picid, imageInByte, thumbbuf,
+					processedbuf, username, currentTimestamp, b.length,
+					thumbInByte.length, processedInByte.length, contentType,
+					name));
 			session.execute(psInsertPicToUser.bind(picid, username,
 					currentTimestamp));
 			session.close();
@@ -102,41 +122,6 @@ public class PicModel {
 		} catch (IOException ex) {
 			System.out.println("Error --> " + ex);
 		}
-	}
-
-	public byte[] picresize(String picid, String type) {
-		try {
-			BufferedImage BI = ImageIO.read(new File("/var/tmp/instagrim/"
-					+ picid));
-			BufferedImage thumbnail = createThumbnail(BI);
-			ByteArrayOutputStream baos = new ByteArrayOutputStream();
-			ImageIO.write(thumbnail, type, baos);
-			baos.flush();
-
-			byte[] imageInByte = baos.toByteArray();
-			baos.close();
-			return imageInByte;
-		} catch (IOException et) {
-
-		}
-		return null;
-	}
-
-	public byte[] picdecolour(String picid, String type) {
-		try {
-			BufferedImage BI = ImageIO.read(new File("/var/tmp/instagrim/"
-					+ picid));
-			BufferedImage processed = createProcessed(BI);
-			ByteArrayOutputStream baos = new ByteArrayOutputStream();
-			ImageIO.write(processed, type, baos);
-			baos.flush();
-			byte[] imageInByte = baos.toByteArray();
-			baos.close();
-			return imageInByte;
-		} catch (IOException et) {
-
-		}
-		return null;
 	}
 
 	public static BufferedImage createThumbnail(BufferedImage img) {
@@ -149,6 +134,97 @@ public class PicModel {
 		int Width = img.getWidth() - 1;
 		img = resize(img, Method.BALANCED, Width, OP_ANTIALIAS, OP_GRAYSCALE);
 		return pad(img, 4);
+	}
+
+	/**
+	 * @param pic
+	 * @param direction
+	 *            a string containing either "right" or "left"
+	 * @return returns rotated BufferedImage. In case of an error this method
+	 *         returns null
+	 */
+	public static BufferedImage rotate(Pic pic, final String direction) {
+		if (!stringInStringList(direction, rotationOperationsList)) {
+			System.err.println("rotate pic invalid rotation direction "
+					+ direction);
+			return null;
+
+		}
+		byte[] bytes = pic.getBytes();
+		BufferedImage img = null;
+		try {
+			ByteArrayInputStream is = new ByteArrayInputStream(bytes);
+			img = ImageIO.read(is);
+			is.close();
+		} catch (IOException e) {
+			System.err.println("picRotate pic byte stream is empty");
+			e.printStackTrace();
+			return img;
+		}
+
+		switch (direction) {
+		case LEFT:
+			img = org.imgscalr.Scalr.rotate(img, Rotation.CW_270);
+			break;
+		case RIGHT:
+			img = org.imgscalr.Scalr.rotate(img, Rotation.CW_90);
+			break;
+
+		}
+		if (img == null) {
+			return img;
+		}
+		return img;
+
+	}
+
+	public void updatePic(Pic pic, Entry<String, String> typeOfManipulation) {
+		final String manipulationKey = typeOfManipulation.getKey();
+
+		if (!stringInStringList(manipulationKey, manipulationKeyList)) {
+			System.err.println("update Picture invalid manipulation type "
+					+ manipulationKey);
+			return;
+		}
+		String types[] = Convertors.SplitFiletype(pic.getType());
+		BufferedImage buffManipulatedImage = new BufferedImage(1, 1,
+				BufferedImage.TYPE_BYTE_BINARY);
+		switch (manipulationKey) {
+		case ROTATE:
+			buffManipulatedImage = PicModel.rotate(pic,
+					typeOfManipulation.getValue());
+			break;
+
+		}
+
+		BufferedImage thumbnail = createThumbnail(buffManipulatedImage);
+		BufferedImage processed = createProcessed(buffManipulatedImage);
+		byte[] thumbnailInBytes = null;
+		byte[] processedInBytes = null;
+
+		try {
+			thumbnailInBytes = bufferedImageToByteArray(thumbnail, types[1]);
+			processedInBytes = bufferedImageToByteArray(processed, types[1]);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		ByteBuffer proccesedByteBuff = ByteBuffer.wrap(processedInBytes);
+		ByteBuffer thumbnailByteBuff = ByteBuffer.wrap(thumbnailInBytes);
+
+		Date currentTimestamp = new Date();
+
+		Session session = cluster.connect(Keyspaces.KEYSPACE_NAME);
+
+		PreparedStatement psUpdatePic = session
+				.prepare("UPDATE pics SET thumb=?, thumblength=?, processed=?, processedlength=?, interaction_time=? WHERE picid=?");
+
+		session.execute(psUpdatePic.bind(thumbnailByteBuff,
+				thumbnailInBytes.length, proccesedByteBuff,
+				processedInBytes.length, currentTimestamp, pic.getUUID()));
+
+		session.close();
+
 	}
 
 	public LinkedList<Pic> getPicsForUser(String username) {
@@ -269,6 +345,33 @@ public class PicModel {
 			return null;
 		}
 
+	}
+
+	private byte[] bufferedImageToByteArray(BufferedImage bufferedImage,
+			String formatString) throws IOException {
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		if (!ImageIO.write(bufferedImage, formatString, baos)) {
+			System.err
+					.println("Error in bufferdImageToByteArray no ImageIO reader found "
+							+ "for type " + formatString);
+		}
+		baos.flush();
+		byte[] imageInByte = baos.toByteArray();
+		baos.close();
+		return imageInByte;
+
+	}
+
+	private static boolean stringInStringList(String needle,
+			final List<String> stringList) {
+		boolean keyInList = false;
+		for (String key : stringList) {
+			if (key.equalsIgnoreCase(needle)) {
+				keyInList = true;
+				break;
+			}
+		}
+		return keyInList;
 	}
 
 }

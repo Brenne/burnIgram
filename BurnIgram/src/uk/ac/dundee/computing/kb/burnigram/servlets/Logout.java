@@ -31,7 +31,7 @@ public class Logout extends HttpServlet {
 		}catch(IllegalStateException e){
 			//session is already invalidated
 		}
-		response.sendRedirect("/Burnigram");
+		response.sendRedirect("index.jsp");
 	}
 
 }

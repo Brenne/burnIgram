@@ -28,7 +28,7 @@ public class Pic {
     private User user;
     private String filename;
     
-    public void Pic() {
+    public Pic() {
 
     }
     public void setUUID(java.util.UUID UUID){

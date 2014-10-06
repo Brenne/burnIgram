@@ -18,7 +18,7 @@
 	Welcome to your profile
 	<%=loggedIn.getUser().getUsername() %><br>
 	<%=loggedIn.getUser().getFirstname()%> <%=loggedIn.getUser().getLastname()%><br>
-	<img src="<%=Globals.ROOT_PATH%>/Image/<%=loggedIn.getUser().getProfilepicId()%>">
+	<img src="<%=Globals.ROOT_PATH%>/Thumb/<%=loggedIn.getUser().getProfilepicId()%>">
 
 </body>
 </html>

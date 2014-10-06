@@ -7,7 +7,7 @@
 	<ul>
 		<li><a href="${Globals.root_path}/index.jsp">Home</a></li>
 
-
+		
 		<%
 			if (!loggedIn.getLogedin()) {
 		%>
@@ -21,7 +21,7 @@
 		<li><a href="${Globals.root_path}/upload.jsp">Upload</a></li>
 		<li><a href="${Globals.root_path}/Images/<%=loggedIn.getUser().getUsername()%>">
 				Your Images</a></li>
-		<li><a href="${Globals.root_path}>/Logout">Sign Out</a></li>
+		<li><a href="${Globals.root_path}/Logout">Sign Out</a></li>
 		<%
 			}
 		%>

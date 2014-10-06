@@ -29,7 +29,6 @@
 		</p>
 	</c:forEach>
 
-
 	<script type="text/javascript" src="${Globals.root_path}/js/Userpics.js.jsp"></script>
 
 	

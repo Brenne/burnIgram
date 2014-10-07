@@ -93,7 +93,7 @@ public class Image extends HttpServlet {
 			DisplayImage(Convertors.DISPLAY_THUMB, args[2], response);
 			break;
 		case 4:
-			DisplayImage(Convertors.DISPLAY_IMAGE, args[2], response);
+			DisplayImage(Convertors.DISPLAY_ORIGINAL_IMAGE, args[2], response);
 		default:
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 		}
@@ -107,8 +107,13 @@ public class Image extends HttpServlet {
 				"loggedIn");
 		PicModel picModel = new PicModel();
 		picModel.setCluster();
-		Pic pic = picModel.getPicFromDB(Convertors.DISPLAY_IMAGE,
+		Pic pic = picModel.getPicFromDB(Convertors.DISPLAY_ORIGINAL_IMAGE,
 				UUID.fromString(args[2]));
+		if(!pic.getUser().getUsername().equals(loggedIn.getUser().getUsername())){
+			//user can not delete pictures of other users
+			resp.sendError(HttpServletResponse.SC_FORBIDDEN);
+			return;
+		}
 		picModel.deletePic(pic);
 	}
 
@@ -209,7 +214,7 @@ public class Image extends HttpServlet {
    	 	LoggedIn loggedIn = (LoggedIn) request.getSession().getAttribute("loggedIn");
    	 	PicModel picModel = new PicModel();
    	 	picModel.setCluster();
-   	 	Pic pic = picModel.getPicFromDB(Convertors.DISPLAY_PROCESSED, UUID.fromString(args[2]));
+   	 	Pic pic = picModel.getPicFromDB(Convertors.DISPLAY_ORIGINAL_IMAGE, UUID.fromString(args[2]));
    	 	picModel.updatePic(pic,operation);
     }
 }

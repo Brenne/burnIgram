@@ -4,11 +4,10 @@
 <!DOCTYPE html>
 <html>
 <head>
+<jsp:include page="include/head.jsp" />
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<title><%=Globals.APP_NAME%></title>
+<title>${Globals.app_name} - Your Pics</title>
 <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
-<link rel="stylesheet" type="text/css"
-	href="<%=Globals.ROOT_PATH%>/Styles.css" />
 </head>
 <body>
 	<jsp:include page="include/header.jsp" />
@@ -30,7 +29,7 @@
 	</c:forEach>
 
 	<script type="text/javascript" src="${Globals.root_path}/js/Userpics.js.jsp"></script>
-
+<jsp:include page="include/footer.jsp" />
 	
 </body>
 </html>

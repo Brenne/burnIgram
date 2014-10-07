@@ -5,8 +5,8 @@
 <html>
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-        <title><%=Globals.APP_NAME%></title>
-        <link rel="stylesheet" type="text/css" href="Styles.css" />
+        <jsp:include page="include/head.jsp" />
+        <title>${Globals.app_name}</title>
     </head>
     <body>
         <jsp:include page="include/header.jsp" />
@@ -14,22 +14,20 @@
        
         
             <h3>Register as a new user</h3>
-            <form method="POST"  action="Register">
+            <form method="POST"  action="Register" class="register">
                 <ul>
-                	<li>first name<input type="text" name="firstname"></li>
-                	<li>Last name<input type="text" name="secondname"></li>
-                    <li>User Name <input type="text" name="username"></li>
-                    <li>Password <input type="password" name="password"></li>
-                    <li>Repeat Password <input type="password" name="password1"></li>
-                    <li>primary E-Mail<input type="email" name="email"></li>
+                	<li><label>first name</label><input type="text" name="firstname"></li>
+                	<li><label>last name</label><input type="text" name="secondname"></li>
+                    <li><label>user name</label><input type="text" name="username"></li>
+                    <li><label>password</label><input type="password" name="password"></li>
+                    <li><label>repeat password</label><input type="password" name="password1"></li>
+                    <li><label>primary E-Mail</label><input type="email" name="email"></li>
                 </ul>
                 <br/>
                 <input type="submit" value="Register"> 
             </form>
 
         
-        <footer>
-           
-        </footer>
+       <jsp:include page="include/footer.jsp" />
     </body>
 </html>

@@ -9,9 +9,9 @@
 <!DOCTYPE html>
 <html>
     <head>
+    <jsp:include page="include/head.jsp" />
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-        <title><%=Globals.APP_NAME %></title>
-        <link rel="stylesheet" type="text/css" href="Styles.css" />
+        <title>${Globals.app_name}</title>
     </head>
     <body>
         <jsp:include page="include/header.jsp"></jsp:include>

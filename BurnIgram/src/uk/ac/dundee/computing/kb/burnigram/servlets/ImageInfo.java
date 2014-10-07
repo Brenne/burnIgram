@@ -12,7 +12,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import uk.ac.dundee.computing.kb.burnigram.lib.Convertors;
 import uk.ac.dundee.computing.kb.burnigram.models.PicModel;
-import uk.ac.dundee.computing.kb.burnigram.stores.Globals;
 import uk.ac.dundee.computing.kb.burnigram.stores.LoggedIn;
 import uk.ac.dundee.computing.kb.burnigram.stores.Pic;
 

@@ -9,8 +9,24 @@ and open the template in the editor.
 */
 
 
-nav {
+.nav {
     text-align: left;
     border: 2px;
     float: right;
 }
+
+.footer{
+	font-size: small;
+}
+
+.register input{
+	width:250px;
+}
+
+.register li{
+	list-style: none;
+}
+.register label{
+	padding-right: 10px;
+}
+

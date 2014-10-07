@@ -24,7 +24,7 @@ public class Pic {
     private int length;
     private String type;
     private java.util.UUID UUID=null;
-    private Date date = null;
+    private Date updated = null;
     private User user;
     private String filename;
     
@@ -41,8 +41,8 @@ public class Pic {
     	return this.UUID;
     }
     
-    public void setPic(ByteBuffer bImage, int length,String type, Date date, User user, String name){
-    	this.date=date;
+    public void setPic(ByteBuffer bImage, int length,String type, Date updated, User user, String name){
+    	this.updated=updated;
     	this.user=user;
     	this.filename=name;
     	this.setPic(bImage, length, type);
@@ -78,7 +78,7 @@ public class Pic {
 		this.user = user;
 	}
 	public Date getDate() {
-		return date;
+		return updated;
 	}
 	
 	public String getName(){

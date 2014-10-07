@@ -32,6 +32,7 @@ import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
+import com.datastax.driver.core.SimpleStatement;
 
 public class PicModel {
 
@@ -89,7 +90,7 @@ public class PicModel {
 
 			ByteArrayInputStream is = new ByteArrayInputStream(b);
 			BufferedImage bufferedImg = ImageIO
-					.read(new ByteArrayInputStream(b));
+					.read(is);
 			ByteBuffer imageInByte = ByteBuffer.wrap(b);
 			is.close();
 			// Creating thumbnail image
@@ -107,14 +108,14 @@ public class PicModel {
 
 			Session session = cluster.connect(Keyspaces.KEYSPACE_NAME);
 			PreparedStatement psInsertPic = session
-					.prepare("insert into pics ( picid, image,thumb,processed, user, interaction_time,imagelength,thumblength,processedlength,type,name) values(?,?,?,?,?,?,?,?,?,?,?)");
+					.prepare("insert into pics ( picid, image,thumb,processed, user, interaction_time,imagelength,thumblength,processedlength,type,name,rotation) values(?,?,?,?,?,?,?,?,?,?,?,?)");
 			PreparedStatement psInsertPicToUser = session
 					.prepare("insert into userpiclist ( picid, user, pic_added) values(?,?,?)");
 
 			session.execute(psInsertPic.bind(picid, imageInByte, thumbbuf,
 					processedbuf, username, currentTimestamp, b.length,
 					thumbInByte.length, processedInByte.length, contentType,
-					name));
+					name,0));
 			session.execute(psInsertPicToUser.bind(picid, username,
 					currentTimestamp));
 			session.close();
@@ -136,63 +137,88 @@ public class PicModel {
 		return pad(img, 4);
 	}
 
-	/**
-	 * @param pic
-	 * @param direction
-	 *            a string containing either "right" or "left"
-	 * @return returns rotated BufferedImage. In case of an error this method
-	 *         returns null
-	 */
-	public static BufferedImage rotate(Pic pic, final String direction) {
-		if (!stringInStringList(direction, rotationOperationsList)) {
-			System.err.println("rotate pic invalid rotation direction "
-					+ direction);
-			return null;
 
-		}
-		byte[] bytes = pic.getBytes();
-		BufferedImage img = null;
-		try {
-			ByteArrayInputStream is = new ByteArrayInputStream(bytes);
-			img = ImageIO.read(is);
-			is.close();
-		} catch (IOException e) {
-			System.err.println("picRotate pic byte stream is empty");
-			e.printStackTrace();
-			return img;
-		}
-
-		switch (direction) {
-		case LEFT:
-			img = org.imgscalr.Scalr.rotate(img, Rotation.CW_270);
-			break;
-		case RIGHT:
-			img = org.imgscalr.Scalr.rotate(img, Rotation.CW_90);
-			break;
-
-		}
-		if (img == null) {
-			return img;
-		}
-		return img;
-
-	}
 
 	public void updatePic(Pic pic, Entry<String, String> typeOfManipulation) {
 		final String manipulationKey = typeOfManipulation.getKey();
-
+		final String manipulationValue = typeOfManipulation.getValue();
 		if (!stringInStringList(manipulationKey, manipulationKeyList)) {
 			System.err.println("update Picture invalid manipulation type "
 					+ manipulationKey);
 			return;
 		}
+		
+		BufferedImage buffManipulatedImage;
+		try {
+			ByteArrayInputStream is = new ByteArrayInputStream(pic.getBytes());
+			buffManipulatedImage = ImageIO.read(is);
+			is.close();
+		} catch (IOException ioEx) {
+			System.err.println("updatPic cannot read from input stream ");
+			ioEx.printStackTrace();
+			buffManipulatedImage = new BufferedImage(1, 1, BufferedImage.TYPE_BYTE_BINARY);		
+		}
+		
 		String types[] = Convertors.SplitFiletype(pic.getType());
-		BufferedImage buffManipulatedImage = new BufferedImage(1, 1,
-				BufferedImage.TYPE_BYTE_BINARY);
+		
+		int rotation = 0;
+		Session session = cluster.connect(Keyspaces.KEYSPACE_NAME);
 		switch (manipulationKey) {
 		case ROTATE:
-			buffManipulatedImage = PicModel.rotate(pic,
-					typeOfManipulation.getValue());
+			if(!stringInStringList(manipulationValue, rotationOperationsList)){
+				return;
+			}
+			
+			SimpleStatement statement = new SimpleStatement("SELECT rotation FROM pics WHERE picid=?", pic.getUUID());
+			ResultSet rs = session.execute(statement);
+			if(!rs.isExhausted()){
+				rotation = rs.one().getInt(0);
+			}
+			switch (rotation){
+			case 0: 
+				if(manipulationValue.equalsIgnoreCase(LEFT)){
+					buffManipulatedImage = org.imgscalr.Scalr.rotate(buffManipulatedImage,
+							Rotation.CW_270);
+					rotation = 270;
+				}else if(manipulationValue.equalsIgnoreCase(RIGHT)){
+					buffManipulatedImage = org.imgscalr.Scalr.rotate(buffManipulatedImage,
+							Rotation.CW_90);
+					rotation = 90;
+				}
+				break;
+			case 90: 
+				if(manipulationValue.equalsIgnoreCase(LEFT)){
+					//no rotation use original image
+					rotation = 0;
+				}else if(manipulationValue.equalsIgnoreCase(RIGHT)){
+					buffManipulatedImage = org.imgscalr.Scalr.rotate(buffManipulatedImage,
+							Rotation.CW_180);
+					rotation = 180;
+				}
+				break;
+			case 180: 
+				if(manipulationValue.equalsIgnoreCase(LEFT)){
+					buffManipulatedImage = org.imgscalr.Scalr.rotate(buffManipulatedImage,
+							Rotation.CW_90);
+					rotation = 90;
+				}else if(manipulationValue.equalsIgnoreCase(RIGHT)){
+					buffManipulatedImage = org.imgscalr.Scalr.rotate(buffManipulatedImage,
+							Rotation.CW_270);
+					rotation = 270;
+				}
+				break;
+			case 270: 
+				if(manipulationValue.equalsIgnoreCase(LEFT)){
+					buffManipulatedImage = org.imgscalr.Scalr.rotate(buffManipulatedImage,
+							Rotation.CW_180);
+					rotation = 180;
+				}else if(manipulationValue.equalsIgnoreCase(RIGHT)){
+					//no rotation user original image
+					rotation = 0;
+				}
+				break;
+			}
+
 			break;
 
 		}
@@ -214,14 +240,13 @@ public class PicModel {
 
 		Date currentTimestamp = new Date();
 
-		Session session = cluster.connect(Keyspaces.KEYSPACE_NAME);
-
 		PreparedStatement psUpdatePic = session
-				.prepare("UPDATE pics SET thumb=?, thumblength=?, processed=?, processedlength=?, interaction_time=? WHERE picid=?");
+				.prepare("UPDATE pics SET thumb=?, thumblength=?, processed=?, processedlength=?, interaction_time=?, rotation=? WHERE picid=?");
 
 		session.execute(psUpdatePic.bind(thumbnailByteBuff,
 				thumbnailInBytes.length, proccesedByteBuff,
-				processedInBytes.length, currentTimestamp, pic.getUUID()));
+				processedInBytes.length, currentTimestamp, rotation,
+				pic.getUUID()));
 
 		session.close();
 
@@ -255,15 +280,18 @@ public class PicModel {
 	}
 
 	public void deletePic(Pic pic) {
+		if(pic==null){
+			System.err.println("Cannot delete Picture with pic is null");
+			return;
+		}
 		Session session = cluster.connect(Keyspaces.KEYSPACE_NAME);
 		PreparedStatement ps1 = session
 				.prepare("DELETE FROM pics WHERE picid=?");
-		ResultSet rs1 = session.execute(ps1.bind(pic.getUUID()));
+		session.execute(ps1.bind(pic.getUUID()));
 		PreparedStatement ps2 = session
-				.prepare("DELETE FROM userpiclist WHERE pic_added=?"
-						+ " AND user=?");
-		ResultSet rs2 = session.execute(ps2.bind(pic.getDate(), pic.getUser()
-				.getUsername()));
+				.prepare("DELETE FROM userpiclist WHERE picid=?");
+		session.execute(ps2.bind(pic.getUUID()));
+				
 
 		session.close();
 	}
@@ -277,7 +305,7 @@ public class PicModel {
 			final String PREFIX_QUERY = "SELECT type, interaction_time, user, name, ";
 			final String POSTFIX_QUERY = " FROM pics WHERE picid=?";
 			switch (image_type) {
-			case Convertors.DISPLAY_IMAGE:
+			case Convertors.DISPLAY_ORIGINAL_IMAGE:
 				ps = session.prepare(PREFIX_QUERY + "image,imagelength"
 						+ POSTFIX_QUERY);
 				break;
@@ -305,7 +333,7 @@ public class PicModel {
 				int length = 0;
 				Row row = rs.one();
 				switch (image_type) {
-				case Convertors.DISPLAY_IMAGE:
+				case Convertors.DISPLAY_ORIGINAL_IMAGE:
 					bImage = row.getBytes("image");
 					length = row.getInt("imagelength");
 					break;

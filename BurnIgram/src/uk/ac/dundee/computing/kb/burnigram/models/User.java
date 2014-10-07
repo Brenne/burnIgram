@@ -20,7 +20,6 @@ import uk.ac.dundee.computing.kb.burnigram.stores.Pic;
 import com.datastax.driver.core.BoundStatement;
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.PreparedStatement;
-import com.datastax.driver.core.RegularStatement;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
@@ -169,16 +168,17 @@ public class User {
 	}
 
 	public boolean changeProfilepic(Pic picture) {
-		if (!userNameExists(this.username)) {
+		if (!userNameExists()) {
+			//ensures that where query will match a entry
 			return false;
 		} else {
 			Session session = cluster.connect(Keyspaces.KEYSPACE_NAME);
 			PreparedStatement ps = session.prepare("UPDATE userprofiles "
 					+ " SET profilepic=? WHERE login=?");
-			ResultSet rs = session.execute(ps.bind(picture.getUUID(),
+			session.execute(ps.bind(picture.getUUID(),
 					this.username));
-			this.profilepic = picture.getUUID();
 			session.close();
+			this.profilepic = picture.getUUID();
 			return true;
 		}
 	}

@@ -9,7 +9,7 @@ import java.util.StringTokenizer;
 import javax.servlet.http.HttpServletRequest;
 
 public final class Convertors {
-    public static final int DISPLAY_IMAGE=0;
+    public static final int DISPLAY_ORIGINAL_IMAGE=0;
     public static final int DISPLAY_THUMB=1;
     public static final int DISPLAY_PROCESSED=2;
     

@@ -17,6 +17,8 @@ $(".delete").click(function(){
 	$.ajax({
 		url:"${Globals.root_path}/Image/" + picid,
 		type : "DELETE"
-			})
-	parent.hide();
-		});
+	}).done(function(){
+		parent.hide();
+	})
+
+});

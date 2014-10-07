@@ -12,7 +12,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import uk.ac.dundee.computing.kb.burnigram.lib.Convertors;
 import uk.ac.dundee.computing.kb.burnigram.models.PicModel;
-import uk.ac.dundee.computing.kb.burnigram.models.User;
 import uk.ac.dundee.computing.kb.burnigram.stores.LoggedIn;
 import uk.ac.dundee.computing.kb.burnigram.stores.Pic;
 
@@ -56,7 +55,7 @@ public class Profile extends HttpServlet {
 				UUID pictureId = UUID.fromString(args[3]);
 				PicModel pictureModel = new PicModel();
 				pictureModel.setCluster();
-				Pic picture = pictureModel.getPicFromDB(Convertors.DISPLAY_IMAGE, pictureId);
+				Pic picture = pictureModel.getPicFromDB(Convertors.DISPLAY_ORIGINAL_IMAGE, pictureId);
 				loggedIn.getUser().changeProfilepic(picture);
 				
 				

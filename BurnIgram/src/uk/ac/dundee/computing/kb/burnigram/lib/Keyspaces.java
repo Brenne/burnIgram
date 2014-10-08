@@ -1,7 +1,5 @@
 package uk.ac.dundee.computing.kb.burnigram.lib;
 
-import sun.org.mozilla.javascript.internal.EcmaError;
-
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.Session;
@@ -37,7 +35,7 @@ public final class Keyspaces {
 				+ "PRIMARY KEY (picid,pic_added)\n"
 				+ ") WITH CLUSTERING ORDER BY (pic_added desc);";
 
-		final String CreateIndexOnUser = "CREATE INDEX userpiclist_user ON "
+		final String CreateIndexOnUser = "CREATE INDEX IF NOT EXISTS userpiclist_user ON "
 						+KEYSPACE_NAME+".userpiclist (user);";
 		
 		final String CreateAddressType = "CREATE TYPE if not exists " + KEYSPACE_NAME
@@ -52,6 +50,17 @@ public final class Keyspaces {
 				+ " email set<text>,\n"
 				+ " addresses  map<text, frozen <address>>,\n"
 				+ " profilepic uuid \n" + "  );";
+		
+		final String CreatePictureComment = "CREATE TABLE IF NOT EXISTS "+KEYSPACE_NAME + ".comments(\n"
+				+ " user varchar,\n"
+				+ " comment text,\n"
+				+ " picid uuid,\n"
+				+ " comment_added timestamp,\n"
+				+ " PRIMARY KEY (picid, comment_added))"
+				+ " WITH CLUSTERING ORDER BY (comment_added DESC);";
+		
+		final String CreateCommentUserIndex  = "CREATE INDEX IF NOT EXISTS comment_user_index ON "+
+				KEYSPACE_NAME+".comments (user);";
 		Session session = null;
 		try{
 			session = c.connect();
@@ -100,6 +109,7 @@ public final class Keyspaces {
 		} catch (Exception et) {
 			System.err.println("Can't create Address type " + et);
 		}
+		
 		System.out.println("" + CreateUserProfile);
 		try {
 			SimpleStatement cqlQuery = new SimpleStatement(CreateUserProfile);
@@ -107,6 +117,23 @@ public final class Keyspaces {
 		} catch (Exception et) {
 			System.err.println("Can't create usersprofile " + et);
 		}
+		
+		System.out.println("" + CreatePictureComment);
+		try {
+			SimpleStatement cqlQuery = new SimpleStatement(CreatePictureComment);
+			session.execute(cqlQuery);
+		} catch (Exception et) {
+			System.err.println("Can't create comment " + et);
+		}
+		
+		System.out.println("" + CreateCommentUserIndex);
+		try {
+			SimpleStatement cqlQuery = new SimpleStatement(CreateCommentUserIndex);
+			session.execute(cqlQuery);
+		} catch (Exception et) {
+			System.err.println("Can't create index on comment(user)" + et);
+		}
+		
 		session.close();
 
 	}

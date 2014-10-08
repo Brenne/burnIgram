@@ -2,8 +2,8 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>${Globals.app_name}</title>
 <jsp:include page="include/head.jsp" />
+<title>${Globals.app_name}</title>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 </head>
 <body>

@@ -1,10 +1,9 @@
 package uk.ac.dundee.computing.kb.burnigram.servlets;
 
 import java.io.IOException;
-import java.util.List;
+import java.util.Date;
 import java.util.UUID;
 
-import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -12,22 +11,21 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import uk.ac.dundee.computing.kb.burnigram.lib.Convertors;
-import uk.ac.dundee.computing.kb.burnigram.models.PicModel;
 import uk.ac.dundee.computing.kb.burnigram.stores.Comment;
+import uk.ac.dundee.computing.kb.burnigram.stores.Globals;
 import uk.ac.dundee.computing.kb.burnigram.stores.LoggedIn;
-import uk.ac.dundee.computing.kb.burnigram.stores.Pic;
 
 /**
- * Servlet implementation class ImageInfo
+ * Servlet implementation class Comment
  */
-@WebServlet({ "/ImageInfo", "/ImageInfo/*" })
-public class ImageInfo extends HttpServlet {
+@WebServlet("/Comment/*")
+public class Comments extends HttpServlet {
 	private static final long serialVersionUID = 1L;
        
     /**
      * @see HttpServlet#HttpServlet()
      */
-    public ImageInfo() {
+    public Comments() {
         super();
         // TODO Auto-generated constructor stub
     }
@@ -36,21 +34,9 @@ public class ImageInfo extends HttpServlet {
 	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
 	 */
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		
-		LoggedIn loggedIn = (LoggedIn) request.getSession().getAttribute("loggedIn");
-		if(loggedIn != null && loggedIn.getLogedin()){
-			
-		}
 		String args[] = Convertors.SplitRequestPath(request);
 		UUID picid = UUID.fromString(args[2]);
-		PicModel picModel = new PicModel();
-		Pic pic = picModel.getPicFromDB(Convertors.DISPLAY_PROCESSED, picid);
-		
-		List<Comment> comments = Comment.getCommentListFromDbByPicid(picid);
-        RequestDispatcher rd = request.getRequestDispatcher("/imageinfo.jsp");
-        request.setAttribute("Pic", pic);
-        request.setAttribute("Comments", comments);
-        rd.forward(request, response);
+
 		
 	}
 
@@ -58,7 +44,31 @@ public class ImageInfo extends HttpServlet {
 	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
 	 */
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		// TODO Auto-generated method stub
+		LoggedIn loggedIn = (LoggedIn) request.getSession().getAttribute(Login.SESSION_NAME_LOGIN);
+		if(loggedIn == null || !loggedIn.getLogedin()){
+			response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+			return;
+		}
+		String content = (String) request.getParameter("contents");
+		String args[] = Convertors.SplitRequestPath(request);
+		UUID picid = null;
+		try{
+			picid = UUID.fromString(args[2]);
+		}catch(ArrayIndexOutOfBoundsException | IllegalArgumentException ex){
+			response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+			return;
+		}
+		Date currentTime = new Date();
+		Comment comment = new Comment(picid, currentTime, loggedIn.getUser(), content);
+		if(comment.insertCommentIntoDB()){
+			response.setStatus(HttpServletResponse.SC_CREATED);
+			response.sendRedirect(Globals.ROOT_PATH+"/ImageInfo/"+picid.toString());
+			
+		}else{
+			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "comment not saved");
+		}
+		 
+
 	}
 
 }

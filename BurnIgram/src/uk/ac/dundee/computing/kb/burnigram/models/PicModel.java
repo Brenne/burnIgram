@@ -60,16 +60,10 @@ public class PicModel {
 	}
 
 	public PicModel() {
-
-	}
-
-	public void setCluster(Cluster cluster) {
-		this.cluster = cluster;
-	}
-
-	public void setCluster() {
 		this.cluster = CassandraHosts.getCluster();
 	}
+
+
 
 	/**
 	 * 
@@ -89,8 +83,7 @@ public class PicModel {
 			java.util.UUID picid = Convertors.getTimeUUID();
 
 			ByteArrayInputStream is = new ByteArrayInputStream(b);
-			BufferedImage bufferedImg = ImageIO
-					.read(is);
+			BufferedImage bufferedImg = ImageIO.read(is);
 			ByteBuffer imageInByte = ByteBuffer.wrap(b);
 			is.close();
 			// Creating thumbnail image
@@ -115,7 +108,7 @@ public class PicModel {
 			session.execute(psInsertPic.bind(picid, imageInByte, thumbbuf,
 					processedbuf, username, currentTimestamp, b.length,
 					thumbInByte.length, processedInByte.length, contentType,
-					name,0));
+					name, 0));
 			session.execute(psInsertPicToUser.bind(picid, username,
 					currentTimestamp));
 			session.close();
@@ -137,8 +130,6 @@ public class PicModel {
 		return pad(img, 4);
 	}
 
-
-
 	public void updatePic(Pic pic, Entry<String, String> typeOfManipulation) {
 		final String manipulationKey = typeOfManipulation.getKey();
 		final String manipulationValue = typeOfManipulation.getValue();
@@ -147,7 +138,7 @@ public class PicModel {
 					+ manipulationKey);
 			return;
 		}
-		
+
 		BufferedImage buffManipulatedImage;
 		try {
 			ByteArrayInputStream is = new ByteArrayInputStream(pic.getBytes());
@@ -156,64 +147,66 @@ public class PicModel {
 		} catch (IOException ioEx) {
 			System.err.println("updatPic cannot read from input stream ");
 			ioEx.printStackTrace();
-			buffManipulatedImage = new BufferedImage(1, 1, BufferedImage.TYPE_BYTE_BINARY);		
+			buffManipulatedImage = new BufferedImage(1, 1,
+					BufferedImage.TYPE_BYTE_BINARY);
 		}
-		
+
 		String types[] = Convertors.SplitFiletype(pic.getType());
-		
+
 		int rotation = 0;
 		Session session = cluster.connect(Keyspaces.KEYSPACE_NAME);
 		switch (manipulationKey) {
 		case ROTATE:
-			if(!stringInStringList(manipulationValue, rotationOperationsList)){
+			if (!stringInStringList(manipulationValue, rotationOperationsList)) {
 				return;
 			}
-			
-			SimpleStatement statement = new SimpleStatement("SELECT rotation FROM pics WHERE picid=?", pic.getUUID());
+
+			SimpleStatement statement = new SimpleStatement(
+					"SELECT rotation FROM pics WHERE picid=?", pic.getUUID());
 			ResultSet rs = session.execute(statement);
-			if(!rs.isExhausted()){
+			if (!rs.isExhausted()) {
 				rotation = rs.one().getInt(0);
 			}
-			switch (rotation){
-			case 0: 
-				if(manipulationValue.equalsIgnoreCase(LEFT)){
-					buffManipulatedImage = org.imgscalr.Scalr.rotate(buffManipulatedImage,
-							Rotation.CW_270);
+			switch (rotation) {
+			case 0:
+				if (manipulationValue.equalsIgnoreCase(LEFT)) {
+					buffManipulatedImage = org.imgscalr.Scalr.rotate(
+							buffManipulatedImage, Rotation.CW_270);
 					rotation = 270;
-				}else if(manipulationValue.equalsIgnoreCase(RIGHT)){
-					buffManipulatedImage = org.imgscalr.Scalr.rotate(buffManipulatedImage,
-							Rotation.CW_90);
+				} else if (manipulationValue.equalsIgnoreCase(RIGHT)) {
+					buffManipulatedImage = org.imgscalr.Scalr.rotate(
+							buffManipulatedImage, Rotation.CW_90);
 					rotation = 90;
 				}
 				break;
-			case 90: 
-				if(manipulationValue.equalsIgnoreCase(LEFT)){
-					//no rotation use original image
+			case 90:
+				if (manipulationValue.equalsIgnoreCase(LEFT)) {
+					// no rotation use original image
 					rotation = 0;
-				}else if(manipulationValue.equalsIgnoreCase(RIGHT)){
-					buffManipulatedImage = org.imgscalr.Scalr.rotate(buffManipulatedImage,
-							Rotation.CW_180);
+				} else if (manipulationValue.equalsIgnoreCase(RIGHT)) {
+					buffManipulatedImage = org.imgscalr.Scalr.rotate(
+							buffManipulatedImage, Rotation.CW_180);
 					rotation = 180;
 				}
 				break;
-			case 180: 
-				if(manipulationValue.equalsIgnoreCase(LEFT)){
-					buffManipulatedImage = org.imgscalr.Scalr.rotate(buffManipulatedImage,
-							Rotation.CW_90);
+			case 180:
+				if (manipulationValue.equalsIgnoreCase(LEFT)) {
+					buffManipulatedImage = org.imgscalr.Scalr.rotate(
+							buffManipulatedImage, Rotation.CW_90);
 					rotation = 90;
-				}else if(manipulationValue.equalsIgnoreCase(RIGHT)){
-					buffManipulatedImage = org.imgscalr.Scalr.rotate(buffManipulatedImage,
-							Rotation.CW_270);
+				} else if (manipulationValue.equalsIgnoreCase(RIGHT)) {
+					buffManipulatedImage = org.imgscalr.Scalr.rotate(
+							buffManipulatedImage, Rotation.CW_270);
 					rotation = 270;
 				}
 				break;
-			case 270: 
-				if(manipulationValue.equalsIgnoreCase(LEFT)){
-					buffManipulatedImage = org.imgscalr.Scalr.rotate(buffManipulatedImage,
-							Rotation.CW_180);
+			case 270:
+				if (manipulationValue.equalsIgnoreCase(LEFT)) {
+					buffManipulatedImage = org.imgscalr.Scalr.rotate(
+							buffManipulatedImage, Rotation.CW_180);
 					rotation = 180;
-				}else if(manipulationValue.equalsIgnoreCase(RIGHT)){
-					//no rotation user original image
+				} else if (manipulationValue.equalsIgnoreCase(RIGHT)) {
+					// no rotation user original image
 					rotation = 0;
 				}
 				break;
@@ -280,7 +273,7 @@ public class PicModel {
 	}
 
 	public void deletePic(Pic pic) {
-		if(pic==null){
+		if (pic == null) {
 			System.err.println("Cannot delete Picture with pic is null");
 			return;
 		}
@@ -291,86 +284,81 @@ public class PicModel {
 		PreparedStatement ps2 = session
 				.prepare("DELETE FROM userpiclist WHERE picid=?");
 		session.execute(ps2.bind(pic.getUUID()));
-				
 
 		session.close();
 	}
 
 	public Pic getPicFromDB(int image_type, java.util.UUID picid) {
-		Session session = cluster.connect(Keyspaces.KEYSPACE_NAME);
 
-		try {
-			ResultSet rs = null;
-			PreparedStatement ps = null;
-			final String PREFIX_QUERY = "SELECT type, interaction_time, user, name, ";
-			final String POSTFIX_QUERY = " FROM pics WHERE picid=?";
+		Session session = this.cluster.connect(Keyspaces.KEYSPACE_NAME);
+
+		ResultSet rs = null;
+		PreparedStatement ps = null;
+		final String PREFIX_QUERY = "SELECT type, interaction_time, user, name, ";
+		final String POSTFIX_QUERY = " FROM pics WHERE picid=?";
+		switch (image_type) {
+		case Convertors.DISPLAY_ORIGINAL_IMAGE:
+			ps = session.prepare(PREFIX_QUERY + "image,imagelength"
+					+ POSTFIX_QUERY);
+			break;
+		case Convertors.DISPLAY_THUMB:
+			ps = session.prepare(PREFIX_QUERY + "thumb,thumblength"
+					+ POSTFIX_QUERY);
+			break;
+		case Convertors.DISPLAY_PROCESSED:
+			ps = session.prepare(PREFIX_QUERY + "processed,processedlength"
+					+ POSTFIX_QUERY);
+			break;
+		default:
+			System.err.println("getPicFromDB invalid image_type 1"
+					+ Integer.toString(image_type));
+
+		}
+		rs = session.execute( // this is where the query is executed
+				ps.bind(picid));
+
+		if (rs.isExhausted()) {
+			System.out.println("No Images returned");
+			return null;
+		} else {
+			ByteBuffer bImage = null;
+			int length = 0;
+			Row row = rs.one();
 			switch (image_type) {
 			case Convertors.DISPLAY_ORIGINAL_IMAGE:
-				ps = session.prepare(PREFIX_QUERY + "image,imagelength"
-						+ POSTFIX_QUERY);
+				bImage = row.getBytes("image");
+				length = row.getInt("imagelength");
 				break;
 			case Convertors.DISPLAY_THUMB:
-				ps = session.prepare(PREFIX_QUERY + "thumb,thumblength"
-						+ POSTFIX_QUERY);
+				bImage = row.getBytes("thumb");
+				length = row.getInt("thumblength");
 				break;
 			case Convertors.DISPLAY_PROCESSED:
-				ps = session.prepare(PREFIX_QUERY + "processed,processedlength"
-						+ POSTFIX_QUERY);
+				bImage = row.getBytes("processed");
+				length = row.getInt("processedlength");
 				break;
 			default:
-				System.err.println("getPicFromDB invalid image_type 1"
+				System.err.println("getPicFromDB invalid image_type 2"
 						+ Integer.toString(image_type));
-
-			}
-			rs = session.execute( // this is where the query is executed
-					ps.bind(picid));
-
-			if (rs.isExhausted()) {
-				System.out.println("No Images returned");
 				return null;
-			} else {
-				ByteBuffer bImage = null;
-				int length = 0;
-				Row row = rs.one();
-				switch (image_type) {
-				case Convertors.DISPLAY_ORIGINAL_IMAGE:
-					bImage = row.getBytes("image");
-					length = row.getInt("imagelength");
-					break;
-				case Convertors.DISPLAY_THUMB:
-					bImage = row.getBytes("thumb");
-					length = row.getInt("thumblength");
-					break;
-				case Convertors.DISPLAY_PROCESSED:
-					bImage = row.getBytes("processed");
-					length = row.getInt("processedlength");
-					break;
-				default:
-					System.err.println("getPicFromDB invalid image_type 2"
-							+ Integer.toString(image_type));
-					return null;
-
-				}
-
-				String type = row.getString("type");
-				Date date = row.getDate("interaction_time");
-				User user = User.initUserFromDB(row.getString("user"));
-				String picname = row.getString("name");
-				session.close();
-				Pic p = new Pic();
-				p.setPic(bImage, length, type, date, user, picname);
-				p.setUUID(picid);
-				if (!rs.isExhausted()) {
-					// should never happen.
-					System.out
-							.println("More than one row in with same picid in pics?");
-				}
-				return p;
 
 			}
-		} catch (Exception et) {
-			System.err.println("Can't get Pic" + et);
-			return null;
+
+			String type = row.getString("type");
+			Date date = row.getDate("interaction_time");
+			User user = User.initUserFromDB(row.getString("user"));
+			String picname = row.getString("name");
+			session.close();
+			Pic p = new Pic();
+			p.setPic(bImage, length, type, date, user, picname);
+			p.setUUID(picid);
+			if (!rs.isExhausted()) {
+				// should never happen.
+				System.out
+						.println("More than one row in with same picid in pics?");
+			}
+			return p;
+
 		}
 
 	}

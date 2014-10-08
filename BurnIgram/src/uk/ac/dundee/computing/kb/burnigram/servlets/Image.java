@@ -102,13 +102,27 @@ public class Image extends HttpServlet {
 	@Override
 	protected void doDelete(HttpServletRequest request, HttpServletResponse resp)
 			throws ServletException, IOException {
-		String args[] = Convertors.SplitRequestPath(request);
 		LoggedIn loggedIn = (LoggedIn) request.getSession().getAttribute(
 				"loggedIn");
+		if(loggedIn == null || !loggedIn.getLogedin()){
+			//unauthorized user can not delete pictures
+			resp.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+			return;
+		}
+		String args[] = Convertors.SplitRequestPath(request);
 		PicModel picModel = new PicModel();
-		picModel.setCluster();
-		Pic pic = picModel.getPicFromDB(Convertors.DISPLAY_ORIGINAL_IMAGE,
+		Pic pic;
+		try{
+			pic = picModel.getPicFromDB(Convertors.DISPLAY_ORIGINAL_IMAGE,
 				UUID.fromString(args[2]));
+			if(pic == null){
+				//no picture found
+				return;
+			}
+		}catch(ArrayIndexOutOfBoundsException | IllegalArgumentException ex){
+			resp.sendError(HttpServletResponse.SC_BAD_REQUEST);
+			return;
+		}
 		if(!pic.getUser().getUsername().equals(loggedIn.getUser().getUsername())){
 			//user can not delete pictures of other users
 			resp.sendError(HttpServletResponse.SC_FORBIDDEN);
@@ -123,11 +137,11 @@ public class Image extends HttpServlet {
 			response.sendRedirect(Globals.ROOT_PATH + "/index.jsp");
 		} else {
 			PicModel tm = new PicModel();
-			tm.setCluster();
 			LinkedList<Pic> pictureList = tm.getPicsForUser(username);
 			RequestDispatcher rd = request
 					.getRequestDispatcher("/UsersPics.jsp");
 			request.setAttribute("Pics", pictureList);
+			request.setAttribute("Username", username);
 			rd.forward(request, response);
 		}
 
@@ -136,7 +150,6 @@ public class Image extends HttpServlet {
 	private void DisplayImage(int type, String Image,
 			HttpServletResponse response) throws ServletException, IOException {
 		PicModel tm = new PicModel();
-		tm.setCluster();
 		Pic p = null;
 		try {
 			p = tm.getPicFromDB(type, java.util.UUID.fromString(Image));
@@ -185,7 +198,7 @@ public class Image extends HttpServlet {
 				is.read(b);
 				System.out.println("Length : " + b.length);
 				PicModel tm = new PicModel();
-				tm.setCluster();
+
 				tm.insertPic(b, contentType, filename, username);
 
 				is.close();
@@ -199,22 +212,33 @@ public class Image extends HttpServlet {
 	@Override
     protected void doPut(HttpServletRequest request, HttpServletResponse resp)
     		throws ServletException, IOException {
+		LoggedIn loggedIn = (LoggedIn) request.getSession().getAttribute("loggedIn");
+		if(loggedIn == null || !loggedIn.getLogedin()){
+			//not put request without logged in
+			resp.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+			return;
+		}
     	String args[] = Convertors.SplitRequestPath(request);
     	BufferedReader br = new BufferedReader(new InputStreamReader(request.getInputStream()));
     	String data = br.readLine();
     	br.close();
     	String[] operationArray = data.split(",");
     	Entry<String,String> operation = null;
+    	PicModel picModel = new PicModel();
+    	Pic pic;
     	try{
     		operation = new AbstractMap.SimpleEntry<String, String>(operationArray[0],operationArray[1]);
-    	}catch(IndexOutOfBoundsException ex){
+    		pic = picModel.getPicFromDB(Convertors.DISPLAY_ORIGINAL_IMAGE, UUID.fromString(args[2]));
+    	}catch(IndexOutOfBoundsException | IllegalArgumentException ex){
     		resp.sendError(HttpServletResponse.SC_BAD_REQUEST);
     		return;
     	}
-   	 	LoggedIn loggedIn = (LoggedIn) request.getSession().getAttribute("loggedIn");
-   	 	PicModel picModel = new PicModel();
-   	 	picModel.setCluster();
-   	 	Pic pic = picModel.getPicFromDB(Convertors.DISPLAY_ORIGINAL_IMAGE, UUID.fromString(args[2]));
-   	 	picModel.updatePic(pic,operation);
+
+   	 	if(loggedIn.getUser() == null || !loggedIn.getUser().getUsername().equalsIgnoreCase(pic.getUser().getUsername()) ){
+   	 		//you can only change your own picture
+   	 		resp.sendError(HttpServletResponse.SC_FORBIDDEN);		
+   	 	}else{
+   	 		picModel.updatePic(pic,operation);
+   	 	}
     }
 }

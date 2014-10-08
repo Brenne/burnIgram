@@ -1,5 +1,5 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"
-	pageEncoding="UTF-8"%>
+	pageEncoding="UTF-8"%><%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
@@ -23,6 +23,21 @@
 
 	<button class="rotate" id="left">Rotate left</button>
 	<button class="rotate" id="right">Rotate right</button>
+	<h3>Comments:</h3>
+	
+	<p><strong>Add a new comment:</strong></p>
+	<form method="POST" action="${Globals.root_path}/Comment/${Pic.SUUID}">
+		<input type="text" value="" name="contents"/><br>
+		<input type="submit" value="comment" name="sendComment"/>
+	</form>
+	<div id="comments">
+	<c:forEach items="${Comments}" var="Comment">
+		<p class="comment">
+		${Comment.user.username} added ${Comment.created}<br>
+		<span class="commentContents">${Comment.content}</span>
+		</p>
+	</c:forEach>
+	</div>
 	<script type="text/javascript">
 	$(".rotate").click(
 			function() {

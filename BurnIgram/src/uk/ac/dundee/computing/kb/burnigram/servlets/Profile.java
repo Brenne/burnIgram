@@ -54,7 +54,6 @@ public class Profile extends HttpServlet {
 				//TODO check if args[3] is not empty or null
 				UUID pictureId = UUID.fromString(args[3]);
 				PicModel pictureModel = new PicModel();
-				pictureModel.setCluster();
 				Pic picture = pictureModel.getPicFromDB(Convertors.DISPLAY_ORIGINAL_IMAGE, pictureId);
 				loggedIn.getUser().changeProfilepic(picture);
 				

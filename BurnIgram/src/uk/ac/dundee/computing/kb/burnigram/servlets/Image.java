@@ -219,6 +219,7 @@ public class Image extends HttpServlet {
 			return;
 		}
     	String args[] = Convertors.SplitRequestPath(request);
+    	//TODO replace these lines with: request.getParameter("rotation")?
     	BufferedReader br = new BufferedReader(new InputStreamReader(request.getInputStream()));
     	String data = br.readLine();
     	br.close();
@@ -227,6 +228,7 @@ public class Image extends HttpServlet {
     	PicModel picModel = new PicModel();
     	Pic pic;
     	try{
+    		//generate a new Entry
     		operation = new AbstractMap.SimpleEntry<String, String>(operationArray[0],operationArray[1]);
     		pic = picModel.getPicFromDB(Convertors.DISPLAY_ORIGINAL_IMAGE, UUID.fromString(args[2]));
     	}catch(IndexOutOfBoundsException | IllegalArgumentException ex){

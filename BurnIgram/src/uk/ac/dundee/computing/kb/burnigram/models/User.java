@@ -106,23 +106,15 @@ public class User {
 		return true;
 	}
 
-	public boolean isValidUser(String password) {
+	public boolean isValidUser(String password, String salt) {
 		if (this.username==null)
 			return false;
-		String encodedPassword = null;
-		try {
-			encodedPassword = AeSimpleSHA1.SHA1(password);
-		} catch (UnsupportedEncodingException | NoSuchAlgorithmException et) {
-			System.out.println("Can't check your password");
-			return false;
-		}
 		Session session = cluster.connect(Keyspaces.KEYSPACE_NAME);
 		PreparedStatement ps = session
 				.prepare("SELECT password FROM userprofiles where login =?");
-		ResultSet rs = null;
-		BoundStatement boundStatement = new BoundStatement(ps);
-		rs = session.execute( // this is where the query is executed
-				boundStatement.bind( // here you are binding the
+		
+		ResultSet rs = session.execute( // this is where the query is executed
+				ps.bind( // here you are binding the
 										// 'boundStatement'
 						this.username));
 		session.close();
@@ -132,11 +124,19 @@ public class User {
 		} else {
 			Row userEntry = rs.one();
 			String dbPassword = userEntry.getString("password");
-			if (dbPassword.equals(encodedPassword)) {
-				return true;
-			} else {
+			try {
+				String dbWithSalt = AeSimpleSHA1.SHA1(salt+dbPassword);
+				if (dbWithSalt.equals(password)) {
+					return true;
+				} else {
+					return false;
+				}
+			} catch (NoSuchAlgorithmException | UnsupportedEncodingException e) {
+				
+				e.printStackTrace();
 				return false;
 			}
+
 		}
 	}
 

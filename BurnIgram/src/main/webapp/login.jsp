@@ -16,7 +16,7 @@
 		<ul>
 			<li>User Name <input type="text" id="username" name="username"></li>
 			<li>Password <input type="password" id="password" name="password"></li>
-		</ul><input type="text" id="hidden" name="hidden"/>
+		</ul><input type="hidden" id="hidden" name="hidden"/>
 		<br /> <input type="submit" value="Login">
 	</form>
 	<script type="text/javascript">

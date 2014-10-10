@@ -23,6 +23,9 @@
 
 	<button class="rotate" id="left">Rotate left</button>
 	<button class="rotate" id="right">Rotate right</button>
+	<p>
+	<button class="brightness" id="dark">Darker</button>
+	<button class="brightness" id="bright">Brighter</button>
 	<h3>Comments:</h3>
 	
 	<p><strong>Add a new comment:</strong></p>
@@ -39,14 +42,35 @@
 	</c:forEach>
 	</div>
 	<script type="text/javascript">
+	$(".brightness").click(
+			function() {
+				var value = this.id;
+
+				$.ajax({
+					url : "${Globals.root_path}/Image/${Pic.SUUID}",
+					dataType : "text",
+					data : "brightness," + value,
+					type : "PUT"
+				}).done(
+						function() {
+							var d = new Date();
+							//the date is added as parameter to prevent browser from fetching image from cache
+							$("#thumb").attr(
+									"src",
+									"${Globals.root_path}/Thumb/${Pic.SUUID}?"
+											+ d.getTime());
+						})
+
+			});
+	
 	$(".rotate").click(
 			function() {
 				var direction = this.id;
 				console.log(direction);
 				$.ajax({
 					url : "${Globals.root_path}/Image/${Pic.SUUID}",
+					data : 	"rotate,"+direction,
 					dataType : "text",
-					data : "rotate," + direction,
 					type : "PUT"
 				}).done(
 						function() {

@@ -2,6 +2,8 @@ package uk.ac.dundee.computing.kb.burnigram.models;
 
 import static org.imgscalr.Scalr.OP_ANTIALIAS;
 import static org.imgscalr.Scalr.OP_GRAYSCALE;
+import static org.imgscalr.Scalr.OP_DARKER;
+import static org.imgscalr.Scalr.OP_BRIGHTER;
 import static org.imgscalr.Scalr.pad;
 import static org.imgscalr.Scalr.resize;
 
@@ -42,6 +44,8 @@ public class PicModel {
 	private static final String BRIGHTNESS = "brightness";
 	private static final String LEFT = "left";
 	private static final String RIGHT = "right";
+	private static final String DARK = "dark";
+	private static final String BRIGHT = "bright";
 
 	private static final List<String> manipulationKeyList;
 	static {
@@ -57,6 +61,14 @@ public class PicModel {
 		myList.add(LEFT);
 		myList.add(RIGHT);
 		rotationOperationsList = Collections.unmodifiableList(myList);
+	}
+	
+	private static final List<String> brightnessOperationsList;
+	static {
+		LinkedList<String> myList = new LinkedList<String>();
+		myList.add(DARK);
+		myList.add(BRIGHT);
+		brightnessOperationsList = Collections.unmodifiableList(myList);
 	}
 
 	public PicModel() {
@@ -154,16 +166,18 @@ public class PicModel {
 		String types[] = Convertors.SplitFiletype(pic.getType());
 
 		int rotation = 0;
+		int brightness = 0;
 		Session session = cluster.connect(Keyspaces.KEYSPACE_NAME);
 		switch (manipulationKey) {
 		case ROTATE:
 			if (!stringInStringList(manipulationValue, rotationOperationsList)) {
+				System.err.println("rotate Picture  invalid manipulation value "+manipulationValue);
 				return;
 			}
 
-			SimpleStatement statement = new SimpleStatement(
+			SimpleStatement rotationStatement = new SimpleStatement(
 					"SELECT rotation FROM pics WHERE picid=?", pic.getUUID());
-			ResultSet rs = session.execute(statement);
+			ResultSet rs = session.execute(rotationStatement);
 			if (!rs.isExhausted()) {
 				rotation = rs.one().getInt(0);
 			}
@@ -211,7 +225,37 @@ public class PicModel {
 				}
 				break;
 			}
+			break;
+		case BRIGHTNESS:
+			if(!stringInStringList(manipulationValue, brightnessOperationsList)){
+				System.err.println("picture update brightness invalid manipulation value "+manipulationValue);
+				return;
+			}
+			SimpleStatement brightnessStatement = new SimpleStatement(
+					"SELECT brightness FROM pics WHERE picid=?", pic.getUUID());
+			ResultSet rs1 = session.execute(brightnessStatement);
+			if (!rs1.isExhausted()) {
+				brightness = rs1.one().getInt(0);
+			}
 
+			switch(manipulationValue){
+			case DARK: 
+				brightness-=10;
+				break;
+			case BRIGHT:
+				brightness+=10;
+				break;	
+			}
+			if(brightness>0){
+				for(int i= 0; i<brightness; i+=10 ){
+					buffManipulatedImage = org.imgscalr.Scalr.apply(buffManipulatedImage, OP_BRIGHTER);
+				}
+			}else if(brightness<0){
+				for(int i= 0; i>brightness; i-=10 ){
+					buffManipulatedImage = org.imgscalr.Scalr.apply(buffManipulatedImage, OP_DARKER);
+				}
+			}
+			
 			break;
 
 		}
@@ -234,11 +278,11 @@ public class PicModel {
 		Date currentTimestamp = new Date();
 
 		PreparedStatement psUpdatePic = session
-				.prepare("UPDATE pics SET thumb=?, thumblength=?, processed=?, processedlength=?, interaction_time=?, rotation=? WHERE picid=?");
+				.prepare("UPDATE pics SET thumb=?, thumblength=?, processed=?, processedlength=?, interaction_time=?, rotation=?, brightness=? WHERE picid=?");
 
 		session.execute(psUpdatePic.bind(thumbnailByteBuff,
 				thumbnailInBytes.length, proccesedByteBuff,
-				processedInBytes.length, currentTimestamp, rotation,
+				processedInBytes.length, currentTimestamp, rotation, brightness,
 				pic.getUUID()));
 
 		session.close();

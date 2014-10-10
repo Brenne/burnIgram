@@ -25,7 +25,7 @@ public final class Keyspaces {
 				+ " interaction_time timestamp," + " title varchar,"
 				+ " image blob," + " thumb blob," + " processed blob,"
 				+ " imagelength int," + " thumblength int,"
-				+ " processedlength int," + " rotation int,"
+				+ " processedlength int," + " rotation int," + " brightness int,"
 				+ " type  varchar," + " name  varchar,"
 				+ " PRIMARY KEY (picid)" + ")";
 		

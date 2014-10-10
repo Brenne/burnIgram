@@ -70,7 +70,7 @@ public class Login extends HttpServlet {
 				response.setContentType("text/html");
 				response.getWriter().write(responseString);
 			}
-		} else if(request.isRequestedSessionIdFromCookie()){
+		} else if(request.isRequestedSessionIdFromCookie()) {
 			// general login process
 			String username = request.getParameter("username");
 			if (username == null || username.isEmpty())
@@ -78,6 +78,7 @@ public class Login extends HttpServlet {
 			String saltetPw = request.getParameter("hidden");
 			HttpSession session = request.getSession();
 			String salt = (String) session.getAttribute("salt");
+			session.removeAttribute("salt");
 			User user = new User(username);
 			if (user.isValidUser(saltetPw,salt)) {
 				user.initUserFromDB();

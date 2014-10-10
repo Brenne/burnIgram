@@ -182,7 +182,7 @@ public class User {
 			return true;
 		}
 	}
-
+	
 	public static User initUserFromDB(String userName) {
 		User user = new User();
 		user.username = userName;

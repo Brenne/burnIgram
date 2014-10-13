@@ -1,9 +1,9 @@
 package uk.ac.dundee.computing.kb.burnigram.models;
 
 import static org.imgscalr.Scalr.OP_ANTIALIAS;
-import static org.imgscalr.Scalr.OP_GRAYSCALE;
-import static org.imgscalr.Scalr.OP_DARKER;
 import static org.imgscalr.Scalr.OP_BRIGHTER;
+import static org.imgscalr.Scalr.OP_DARKER;
+import static org.imgscalr.Scalr.OP_GRAYSCALE;
 import static org.imgscalr.Scalr.pad;
 import static org.imgscalr.Scalr.resize;
 
@@ -34,7 +34,6 @@ import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
-import com.datastax.driver.core.SimpleStatement;
 
 public class PicModel {
 
@@ -62,7 +61,7 @@ public class PicModel {
 		myList.add(RIGHT);
 		rotationOperationsList = Collections.unmodifiableList(myList);
 	}
-	
+
 	private static final List<String> brightnessOperationsList;
 	static {
 		LinkedList<String> myList = new LinkedList<String>();
@@ -75,8 +74,6 @@ public class PicModel {
 		this.cluster = CassandraHosts.getCluster();
 	}
 
-
-
 	/**
 	 * 
 	 * @param b
@@ -88,205 +85,158 @@ public class PicModel {
 	 */
 	public void insertPic(byte[] b, String contentType, String name,
 			String username) {
-		try {
 
-			String types[] = Convertors.SplitFiletype(contentType);
+		String types[] = Convertors.SplitFiletype(contentType);
 
-			java.util.UUID picid = Convertors.getTimeUUID();
+		java.util.UUID picid = Convertors.getTimeUUID();
 
-			ByteArrayInputStream is = new ByteArrayInputStream(b);
-			BufferedImage bufferedImg = ImageIO.read(is);
-			ByteBuffer imageInByte = ByteBuffer.wrap(b);
-			is.close();
-			// Creating thumbnail image
-			BufferedImage thumbnail = createThumbnail(bufferedImg);
-			byte[] thumbInByte = bufferedImageToByteArray(thumbnail, types[1]);
-			ByteBuffer thumbbuf = ByteBuffer.wrap(thumbInByte);
+		BufferedImage bufferedImg = byteArrayToBufferedImage(b);
+		bufferedImg = blackAndWhite(bufferedImg);
+		ByteBuffer imageInByte = ByteBuffer.wrap(b);
 
-			// Creating processed image
-			BufferedImage processed = createProcessed(bufferedImg);
-			byte[] processedInByte = bufferedImageToByteArray(processed,
-					types[1]);
-			ByteBuffer processedbuf = ByteBuffer.wrap(processedInByte);
+		// Creating thumbnail image
+		BufferedImage thumbnail = createThumbnail(bufferedImg);
+		byte[] thumbInByte = bufferedImageToByteArray(thumbnail, types[1]);
+		ByteBuffer thumbbuf = ByteBuffer.wrap(thumbInByte);
 
-			Date currentTimestamp = new Date();
+		// Creating processed image
+		BufferedImage processed = createProcessed(bufferedImg);
+		byte[] processedInByte = bufferedImageToByteArray(processed, types[1]);
+		ByteBuffer processedbuf = ByteBuffer.wrap(processedInByte);
 
-			Session session = cluster.connect(Keyspaces.KEYSPACE_NAME);
-			PreparedStatement psInsertPic = session
-					.prepare("insert into pics ( picid, image,thumb,processed, user, interaction_time,imagelength,thumblength,processedlength,type,name,rotation) values(?,?,?,?,?,?,?,?,?,?,?,?)");
-			PreparedStatement psInsertPicToUser = session
-					.prepare("insert into userpiclist ( picid, user, pic_added) values(?,?,?)");
+		Date currentTimestamp = new Date();
 
-			session.execute(psInsertPic.bind(picid, imageInByte, thumbbuf,
-					processedbuf, username, currentTimestamp, b.length,
-					thumbInByte.length, processedInByte.length, contentType,
-					name, 0));
-			session.execute(psInsertPicToUser.bind(picid, username,
-					currentTimestamp));
-			session.close();
+		Session session = cluster.connect(Keyspaces.KEYSPACE_NAME);
+		PreparedStatement psInsertPic = session
+				.prepare("insert into pics ( picid, image,thumb,processed, user, interaction_time,imagelength,thumblength,processedlength,type,name,rotation) values(?,?,?,?,?,?,?,?,?,?,?,?)");
+		PreparedStatement psInsertPicToUser = session
+				.prepare("insert into userpiclist ( picid, user, pic_added) values(?,?,?)");
 
-		} catch (IOException ex) {
-			System.out.println("Error --> " + ex);
-		}
+		session.execute(psInsertPic.bind(picid, imageInByte, thumbbuf,
+				processedbuf, username, currentTimestamp, b.length,
+				thumbInByte.length, processedInByte.length, contentType, name,
+				0));
+		session.execute(psInsertPicToUser.bind(picid, username,
+				currentTimestamp));
+		session.close();
+
+	}
+
+	public static BufferedImage blackAndWhite(BufferedImage img) {
+		img = org.imgscalr.Scalr.apply(img, OP_GRAYSCALE);
+		return img;
 	}
 
 	public static BufferedImage createThumbnail(BufferedImage img) {
-		img = resize(img, Method.BALANCED, 250, OP_ANTIALIAS, OP_GRAYSCALE);
+		img = resize(img, Method.BALANCED, 250, OP_ANTIALIAS);
 		// Let's add a little border before we return result.
 		return pad(img, 2);
 	}
 
 	public static BufferedImage createProcessed(BufferedImage img) {
 		int Width = img.getWidth() - 1;
-		img = resize(img, Method.BALANCED, Width, OP_ANTIALIAS, OP_GRAYSCALE);
+		img = resize(img, Method.QUALITY, Width, OP_ANTIALIAS);
 		return pad(img, 4);
 	}
 
-	public void updatePic(Pic pic, Entry<String, String> typeOfManipulation) {
+	public static BufferedImage rotate(BufferedImage buffImage, String direction) {
+		if (!stringInStringList(direction, rotationOperationsList)) {
+			System.err.println("rotate Picture  invalid manipulation value "
+					+ direction);
+			return buffImage;
+		}
+
+		switch (direction) {
+		case LEFT:
+			buffImage = org.imgscalr.Scalr.rotate(buffImage, Rotation.CW_270);
+			break;
+		case RIGHT:
+			buffImage = org.imgscalr.Scalr.rotate(buffImage, Rotation.CW_90);
+			break;
+		}
+
+		return buffImage;
+	}
+
+	public static BufferedImage changeBrighteness(BufferedImage buffImage,
+			String brightness) {
+		if (!stringInStringList(brightness, brightnessOperationsList)) {
+			System.err
+					.println("picture update brightness invalid manipulation value "
+							+ brightness);
+			return buffImage;
+		}
+		switch (brightness) {
+		case DARK:
+			buffImage = org.imgscalr.Scalr.apply(buffImage, OP_DARKER);
+			break;
+		case BRIGHT:
+			buffImage = org.imgscalr.Scalr.apply(buffImage, OP_BRIGHTER);
+			break;
+		}
+		return buffImage;
+	}
+
+	private BufferedImage manipulatePic(Pic pic,
+			Entry<String, String> typeOfManipulation) {
 		final String manipulationKey = typeOfManipulation.getKey();
 		final String manipulationValue = typeOfManipulation.getValue();
 		if (!stringInStringList(manipulationKey, manipulationKeyList)) {
 			System.err.println("update Picture invalid manipulation type "
 					+ manipulationKey);
-			return;
+			return null;
 		}
 
-		BufferedImage buffManipulatedImage;
-		try {
-			ByteArrayInputStream is = new ByteArrayInputStream(pic.getBytes());
-			buffManipulatedImage = ImageIO.read(is);
-			is.close();
-		} catch (IOException ioEx) {
-			System.err.println("updatPic cannot read from input stream ");
-			ioEx.printStackTrace();
-			buffManipulatedImage = new BufferedImage(1, 1,
-					BufferedImage.TYPE_BYTE_BINARY);
-		}
-
-		String types[] = Convertors.SplitFiletype(pic.getType());
-
-		int rotation = 0;
-		int brightness = 0;
-		Session session = cluster.connect(Keyspaces.KEYSPACE_NAME);
+		BufferedImage manipulatedBuffImg = byteArrayToBufferedImage(pic
+				.getBytes());
 		switch (manipulationKey) {
 		case ROTATE:
-			if (!stringInStringList(manipulationValue, rotationOperationsList)) {
-				System.err.println("rotate Picture  invalid manipulation value "+manipulationValue);
-				return;
-			}
+			manipulatedBuffImg = rotate(manipulatedBuffImg, manipulationValue);
 
-			SimpleStatement rotationStatement = new SimpleStatement(
-					"SELECT rotation FROM pics WHERE picid=?", pic.getUUID());
-			ResultSet rs = session.execute(rotationStatement);
-			if (!rs.isExhausted()) {
-				rotation = rs.one().getInt(0);
-			}
-			switch (rotation) {
-			case 0:
-				if (manipulationValue.equalsIgnoreCase(LEFT)) {
-					buffManipulatedImage = org.imgscalr.Scalr.rotate(
-							buffManipulatedImage, Rotation.CW_270);
-					rotation = 270;
-				} else if (manipulationValue.equalsIgnoreCase(RIGHT)) {
-					buffManipulatedImage = org.imgscalr.Scalr.rotate(
-							buffManipulatedImage, Rotation.CW_90);
-					rotation = 90;
-				}
-				break;
-			case 90:
-				if (manipulationValue.equalsIgnoreCase(LEFT)) {
-					// no rotation use original image
-					rotation = 0;
-				} else if (manipulationValue.equalsIgnoreCase(RIGHT)) {
-					buffManipulatedImage = org.imgscalr.Scalr.rotate(
-							buffManipulatedImage, Rotation.CW_180);
-					rotation = 180;
-				}
-				break;
-			case 180:
-				if (manipulationValue.equalsIgnoreCase(LEFT)) {
-					buffManipulatedImage = org.imgscalr.Scalr.rotate(
-							buffManipulatedImage, Rotation.CW_90);
-					rotation = 90;
-				} else if (manipulationValue.equalsIgnoreCase(RIGHT)) {
-					buffManipulatedImage = org.imgscalr.Scalr.rotate(
-							buffManipulatedImage, Rotation.CW_270);
-					rotation = 270;
-				}
-				break;
-			case 270:
-				if (manipulationValue.equalsIgnoreCase(LEFT)) {
-					buffManipulatedImage = org.imgscalr.Scalr.rotate(
-							buffManipulatedImage, Rotation.CW_180);
-					rotation = 180;
-				} else if (manipulationValue.equalsIgnoreCase(RIGHT)) {
-					// no rotation user original image
-					rotation = 0;
-				}
-				break;
-			}
 			break;
 		case BRIGHTNESS:
-			if(!stringInStringList(manipulationValue, brightnessOperationsList)){
-				System.err.println("picture update brightness invalid manipulation value "+manipulationValue);
-				return;
-			}
-			SimpleStatement brightnessStatement = new SimpleStatement(
-					"SELECT brightness FROM pics WHERE picid=?", pic.getUUID());
-			ResultSet rs1 = session.execute(brightnessStatement);
-			if (!rs1.isExhausted()) {
-				brightness = rs1.one().getInt(0);
-			}
-
-			switch(manipulationValue){
-			case DARK: 
-				brightness-=10;
-				break;
-			case BRIGHT:
-				brightness+=10;
-				break;	
-			}
-			if(brightness>0){
-				for(int i= 0; i<brightness; i+=10 ){
-					buffManipulatedImage = org.imgscalr.Scalr.apply(buffManipulatedImage, OP_BRIGHTER);
-				}
-			}else if(brightness<0){
-				for(int i= 0; i>brightness; i-=10 ){
-					buffManipulatedImage = org.imgscalr.Scalr.apply(buffManipulatedImage, OP_DARKER);
-				}
-			}
-			
+			manipulatedBuffImg = changeBrighteness(manipulatedBuffImg,
+					manipulationValue);
 			break;
-
 		}
+		return manipulatedBuffImg;
 
-		BufferedImage thumbnail = createThumbnail(buffManipulatedImage);
-		BufferedImage processed = createProcessed(buffManipulatedImage);
+	}
+
+	public void updatePic(UUID picID, Entry<String, String> typeOfManipulation) {
+
+		Pic processedPic = this.getPicFromDB(Convertors.DISPLAY_PROCESSED,
+				picID);
+		Pic thubmnailPic = this.getPicFromDB(Convertors.DISPLAY_THUMB, picID);
+
+		BufferedImage proccesedBuff = manipulatePic(processedPic,
+				typeOfManipulation);
+		BufferedImage thumbnailBuff = manipulatePic(thubmnailPic,
+				typeOfManipulation);
+
 		byte[] thumbnailInBytes = null;
 		byte[] processedInBytes = null;
 
-		try {
-			thumbnailInBytes = bufferedImageToByteArray(thumbnail, types[1]);
-			processedInBytes = bufferedImageToByteArray(processed, types[1]);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		String thumbnailTypes[] = Convertors.SplitFiletype(thubmnailPic.getType());
+		String processedTypes[] = Convertors.SplitFiletype(thubmnailPic.getType());
+
+		thumbnailInBytes = bufferedImageToByteArray(thumbnailBuff, thumbnailTypes[1]);
+		processedInBytes = bufferedImageToByteArray(proccesedBuff, processedTypes[1]);
+
 		ByteBuffer proccesedByteBuff = ByteBuffer.wrap(processedInBytes);
 		ByteBuffer thumbnailByteBuff = ByteBuffer.wrap(thumbnailInBytes);
 
 		Date currentTimestamp = new Date();
 
+		Session session = cluster.connect(Keyspaces.KEYSPACE_NAME);
 		PreparedStatement psUpdatePic = session
-				.prepare("UPDATE pics SET thumb=?, thumblength=?, processed=?, processedlength=?, interaction_time=?, rotation=?, brightness=? WHERE picid=?");
+				.prepare("UPDATE pics SET thumb=?, thumblength=?, processed=?, processedlength=?, interaction_time=? WHERE picid=?");
 
 		session.execute(psUpdatePic.bind(thumbnailByteBuff,
 				thumbnailInBytes.length, proccesedByteBuff,
-				processedInBytes.length, currentTimestamp, rotation, brightness,
-				pic.getUUID()));
+				processedInBytes.length, currentTimestamp, picID));
 
 		session.close();
-
 	}
 
 	public LinkedList<Pic> getPicsForUser(String username) {
@@ -408,18 +358,39 @@ public class PicModel {
 	}
 
 	private byte[] bufferedImageToByteArray(BufferedImage bufferedImage,
-			String formatString) throws IOException {
+			String formatString) {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		if (!ImageIO.write(bufferedImage, formatString, baos)) {
-			System.err
-					.println("Error in bufferdImageToByteArray no ImageIO reader found "
-							+ "for type " + formatString);
+		byte[] imageInByte = null;
+		try {
+			if (!ImageIO.write(bufferedImage, formatString, baos)) {
+				System.err
+						.println("Error in bufferdImageToByteArray no ImageIO reader found "
+								+ "for type " + formatString);
+			}
+			baos.flush();
+			imageInByte = baos.toByteArray();
+			baos.close();
+		} catch (IOException exception) {
+			System.err.println("IOExecption in bufferedImageToByte Array");
+			exception.printStackTrace();
 		}
-		baos.flush();
-		byte[] imageInByte = baos.toByteArray();
-		baos.close();
 		return imageInByte;
 
+	}
+
+	private BufferedImage byteArrayToBufferedImage(byte[] byteArray) {
+		BufferedImage buffImage;
+		try {
+			ByteArrayInputStream is = new ByteArrayInputStream(byteArray);
+			buffImage = ImageIO.read(is);
+			is.close();
+		} catch (IOException ioEx) {
+			System.err
+					.println("byteArrayToBufferedImage cannot read from input stream ");
+			ioEx.printStackTrace();
+			buffImage = new BufferedImage(1, 1, BufferedImage.TYPE_BYTE_BINARY);
+		}
+		return buffImage;
 	}
 
 	private static boolean stringInStringList(String needle,

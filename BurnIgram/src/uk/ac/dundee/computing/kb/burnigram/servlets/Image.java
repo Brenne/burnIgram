@@ -219,7 +219,6 @@ public class Image extends HttpServlet {
 			return;
 		}
     	String args[] = Convertors.SplitRequestPath(request);
-    	//TODO replace these lines with: request.getParameter("rotation")?
     	BufferedReader br = new BufferedReader(new InputStreamReader(request.getInputStream()));
     	String data = br.readLine();
     	br.close();
@@ -227,20 +226,23 @@ public class Image extends HttpServlet {
     	Entry<String,String> operation = null;
     	PicModel picModel = new PicModel();
     	Pic pic;
+    	UUID picid = null;
     	try{
     		//generate a new Entry
     		operation = new AbstractMap.SimpleEntry<String, String>(operationArray[0],operationArray[1]);
-    		pic = picModel.getPicFromDB(Convertors.DISPLAY_ORIGINAL_IMAGE, UUID.fromString(args[2]));
+    		picid = UUID.fromString(args[2]);
+    		//TODO instead of fetching the whole pic from db user name would be enough in this case
+    		pic = picModel.getPicFromDB(Convertors.DISPLAY_ORIGINAL_IMAGE, picid);
     	}catch(IndexOutOfBoundsException | IllegalArgumentException ex){
     		resp.sendError(HttpServletResponse.SC_BAD_REQUEST);
     		return;
     	}
-
+    	
    	 	if(loggedIn.getUser() == null || !loggedIn.getUser().getUsername().equalsIgnoreCase(pic.getUser().getUsername()) ){
    	 		//you can only change your own picture
    	 		resp.sendError(HttpServletResponse.SC_FORBIDDEN);		
    	 	}else{
-   	 		picModel.updatePic(pic,operation);
+   	 		picModel.updatePic(picid,operation);
    	 	}
     }
 }

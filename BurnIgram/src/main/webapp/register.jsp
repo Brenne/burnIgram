@@ -14,13 +14,17 @@
        
         
             <h3>Register as a new user</h3>
+            <c:if test="${requestScope.errorMessage != null}">
+     			<div id="error">${requestScope.errorMessage}</div>
+			</c:if>
+           
             <form method="POST"  action="Register" class="register">
                 <ul>
                 	<li><label>first name</label><input type="text" name="firstname"></li>
                 	<li><label>last name</label><input type="text" name="secondname"></li>
                     <li><label>user name</label><input type="text" name="username"></li>
                     <li><label>password</label><input type="password" name="password"></li>
-                    <li><label>repeat password</label><input type="password" name="password1"></li>
+                    <!-- <li><label>repeat password</label><input type="password" name="password1"></li> -->
                     <li><label>primary E-Mail</label><input type="email" name="email"></li>
                 </ul>
                 <br/>

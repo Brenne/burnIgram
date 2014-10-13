@@ -17,7 +17,6 @@ import uk.ac.dundee.computing.kb.burnigram.lib.CassandraHosts;
 import uk.ac.dundee.computing.kb.burnigram.lib.Keyspaces;
 import uk.ac.dundee.computing.kb.burnigram.stores.Pic;
 
-import com.datastax.driver.core.BoundStatement;
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSet;
@@ -76,18 +75,19 @@ public class User {
 		return profilepic;
 	}
 
-	public boolean registerUser(String password) {
+	public boolean registerUser(String password) throws Throwable {
 
-		if (this.username == null || !validUserName(this.username)
-				|| userNameExists(this.username)) {
-			return false;
+		if (this.username == null || !validUserName(this.username)){
+			throw new Throwable("Username must not be empty and between 3 and  15 Characters long");
+		}else if(userNameExists(this.username)) {
+			throw new Throwable("Username already exists");
 		}
 		String encodedPassword = null;
 		try {
 			encodedPassword = AeSimpleSHA1.SHA1(password);
 		} catch (UnsupportedEncodingException | NoSuchAlgorithmException et) {
 			System.out.println("Can't check your password");
-			return false;
+			throw new Throwable("Please don't use special characters in your password");
 		}
 		Session session = cluster.connect(Keyspaces.KEYSPACE_NAME);
 		PreparedStatement ps = session.prepare("insert into userprofiles "
@@ -101,7 +101,6 @@ public class User {
 		ps.bind(
 		// here you are binding the 'boundStatement'
 		this.username, encodedPassword, this.firstname, this.lastname, email));
-		// TODO handle false
 		session.close();
 		return true;
 	}

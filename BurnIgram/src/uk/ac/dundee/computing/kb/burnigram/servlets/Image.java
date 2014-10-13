@@ -225,20 +225,19 @@ public class Image extends HttpServlet {
     	String[] operationArray = data.split(",");
     	Entry<String,String> operation = null;
     	PicModel picModel = new PicModel();
-    	Pic pic;
+    	User user;
     	UUID picid = null;
     	try{
     		//generate a new Entry
     		operation = new AbstractMap.SimpleEntry<String, String>(operationArray[0],operationArray[1]);
     		picid = UUID.fromString(args[2]);
-    		//TODO instead of fetching the whole pic from db user name would be enough in this case
-    		pic = picModel.getPicFromDB(Convertors.DISPLAY_ORIGINAL_IMAGE, picid);
+    		user = picModel.getPicOwnerFromDB(picid);
     	}catch(IndexOutOfBoundsException | IllegalArgumentException ex){
     		resp.sendError(HttpServletResponse.SC_BAD_REQUEST);
     		return;
     	}
     	
-   	 	if(loggedIn.getUser() == null || !loggedIn.getUser().getUsername().equalsIgnoreCase(pic.getUser().getUsername()) ){
+   	 	if(loggedIn.getUser() == null || !loggedIn.getUser().getUsername().equalsIgnoreCase(user.getUsername()) ){
    	 		//you can only change your own picture
    	 		resp.sendError(HttpServletResponse.SC_FORBIDDEN);		
    	 	}else{

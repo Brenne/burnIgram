@@ -8,9 +8,6 @@ import static org.imgscalr.Scalr.pad;
 import static org.imgscalr.Scalr.resize;
 
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Collections;
 import java.util.Date;
@@ -18,8 +15,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.UUID;
-
-import javax.imageio.ImageIO;
 
 import org.imgscalr.Scalr.Method;
 import org.imgscalr.Scalr.Rotation;
@@ -34,6 +29,7 @@ import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
+import com.datastax.driver.core.SimpleStatement;
 
 public class PicModel {
 
@@ -90,18 +86,18 @@ public class PicModel {
 
 		java.util.UUID picid = Convertors.getTimeUUID();
 
-		BufferedImage bufferedImg = byteArrayToBufferedImage(b);
+		BufferedImage bufferedImg = Convertors.byteArrayToBufferedImage(b);
 		bufferedImg = blackAndWhite(bufferedImg);
 		ByteBuffer imageInByte = ByteBuffer.wrap(b);
 
 		// Creating thumbnail image
 		BufferedImage thumbnail = createThumbnail(bufferedImg);
-		byte[] thumbInByte = bufferedImageToByteArray(thumbnail, types[1]);
+		byte[] thumbInByte = Convertors.bufferedImageToByteArray(thumbnail, types[1]);
 		ByteBuffer thumbbuf = ByteBuffer.wrap(thumbInByte);
 
 		// Creating processed image
 		BufferedImage processed = createProcessed(bufferedImg);
-		byte[] processedInByte = bufferedImageToByteArray(processed, types[1]);
+		byte[] processedInByte = Convertors.bufferedImageToByteArray(processed, types[1]);
 		ByteBuffer processedbuf = ByteBuffer.wrap(processedInByte);
 
 		Date currentTimestamp = new Date();
@@ -187,7 +183,7 @@ public class PicModel {
 			return null;
 		}
 
-		BufferedImage manipulatedBuffImg = byteArrayToBufferedImage(pic
+		BufferedImage manipulatedBuffImg = Convertors.byteArrayToBufferedImage(pic
 				.getBytes());
 		switch (manipulationKey) {
 		case ROTATE:
@@ -220,8 +216,8 @@ public class PicModel {
 		String thumbnailTypes[] = Convertors.SplitFiletype(thubmnailPic.getType());
 		String processedTypes[] = Convertors.SplitFiletype(thubmnailPic.getType());
 
-		thumbnailInBytes = bufferedImageToByteArray(thumbnailBuff, thumbnailTypes[1]);
-		processedInBytes = bufferedImageToByteArray(proccesedBuff, processedTypes[1]);
+		thumbnailInBytes = Convertors.bufferedImageToByteArray(thumbnailBuff, thumbnailTypes[1]);
+		processedInBytes = Convertors.bufferedImageToByteArray(proccesedBuff, processedTypes[1]);
 
 		ByteBuffer proccesedByteBuff = ByteBuffer.wrap(processedInBytes);
 		ByteBuffer thumbnailByteBuff = ByteBuffer.wrap(thumbnailInBytes);
@@ -281,34 +277,52 @@ public class PicModel {
 
 		session.close();
 	}
+	
+	public User getPicOwnerFromDB(UUID picid){
+		SimpleStatement st = new SimpleStatement("SELECT user FROM pics WHERE picid=?",picid);
+		Session session = this.cluster.connect(Keyspaces.KEYSPACE_NAME);
+		ResultSet rs = session.execute(st);
+		if(!rs.isExhausted()){
+			Row row = rs.one();
+			String username = row.getString(0);
+			if(username != null && !username.isEmpty()){
+				User user = User.initUserFromDB(username);
+				return user;
+			}else{
+				System.err.println("getPicOwnerFromDB picture found but now owner");
+			}
+		}else{
+			System.err.println("getPicOwnerFromDB no picture with this id found "+ picid.toString());
+		}
+		return null;
+	}
 
-	public Pic getPicFromDB(int image_type, java.util.UUID picid) {
+	public Pic getPicFromDB(int image_type, UUID picid) {
 
 		Session session = this.cluster.connect(Keyspaces.KEYSPACE_NAME);
 
-		ResultSet rs = null;
-		PreparedStatement ps = null;
 		final String PREFIX_QUERY = "SELECT type, interaction_time, user, name, ";
 		final String POSTFIX_QUERY = " FROM pics WHERE picid=?";
+		final String LENGTH ="length";
+		String imageType ="";
 		switch (image_type) {
 		case Convertors.DISPLAY_ORIGINAL_IMAGE:
-			ps = session.prepare(PREFIX_QUERY + "image,imagelength"
-					+ POSTFIX_QUERY);
+			imageType = "image";
 			break;
 		case Convertors.DISPLAY_THUMB:
-			ps = session.prepare(PREFIX_QUERY + "thumb,thumblength"
-					+ POSTFIX_QUERY);
+			imageType ="thumb";
 			break;
 		case Convertors.DISPLAY_PROCESSED:
-			ps = session.prepare(PREFIX_QUERY + "processed,processedlength"
-					+ POSTFIX_QUERY);
+			imageType="processed";
 			break;
 		default:
 			System.err.println("getPicFromDB invalid image_type 1"
 					+ Integer.toString(image_type));
 
 		}
-		rs = session.execute( // this is where the query is executed
+		PreparedStatement ps = session.prepare(PREFIX_QUERY + imageType + ","+imageType+LENGTH
+				+ POSTFIX_QUERY);
+		ResultSet rs = session.execute( // this is where the query is executed
 				ps.bind(picid));
 
 		if (rs.isExhausted()) {
@@ -318,26 +332,8 @@ public class PicModel {
 			ByteBuffer bImage = null;
 			int length = 0;
 			Row row = rs.one();
-			switch (image_type) {
-			case Convertors.DISPLAY_ORIGINAL_IMAGE:
-				bImage = row.getBytes("image");
-				length = row.getInt("imagelength");
-				break;
-			case Convertors.DISPLAY_THUMB:
-				bImage = row.getBytes("thumb");
-				length = row.getInt("thumblength");
-				break;
-			case Convertors.DISPLAY_PROCESSED:
-				bImage = row.getBytes("processed");
-				length = row.getInt("processedlength");
-				break;
-			default:
-				System.err.println("getPicFromDB invalid image_type 2"
-						+ Integer.toString(image_type));
-				return null;
-
-			}
-
+			bImage = row.getBytes(imageType);
+			length = row.getInt(imageType+LENGTH);
 			String type = row.getString("type");
 			Date date = row.getDate("interaction_time");
 			User user = User.initUserFromDB(row.getString("user"));
@@ -355,42 +351,6 @@ public class PicModel {
 
 		}
 
-	}
-
-	private byte[] bufferedImageToByteArray(BufferedImage bufferedImage,
-			String formatString) {
-		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		byte[] imageInByte = null;
-		try {
-			if (!ImageIO.write(bufferedImage, formatString, baos)) {
-				System.err
-						.println("Error in bufferdImageToByteArray no ImageIO reader found "
-								+ "for type " + formatString);
-			}
-			baos.flush();
-			imageInByte = baos.toByteArray();
-			baos.close();
-		} catch (IOException exception) {
-			System.err.println("IOExecption in bufferedImageToByte Array");
-			exception.printStackTrace();
-		}
-		return imageInByte;
-
-	}
-
-	private BufferedImage byteArrayToBufferedImage(byte[] byteArray) {
-		BufferedImage buffImage;
-		try {
-			ByteArrayInputStream is = new ByteArrayInputStream(byteArray);
-			buffImage = ImageIO.read(is);
-			is.close();
-		} catch (IOException ioEx) {
-			System.err
-					.println("byteArrayToBufferedImage cannot read from input stream ");
-			ioEx.printStackTrace();
-			buffImage = new BufferedImage(1, 1, BufferedImage.TYPE_BYTE_BINARY);
-		}
-		return buffImage;
 	}
 
 	private static boolean stringInStringList(String needle,

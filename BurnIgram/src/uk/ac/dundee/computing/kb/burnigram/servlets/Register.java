@@ -8,6 +8,7 @@ package uk.ac.dundee.computing.kb.burnigram.servlets;
 
 import java.io.IOException;
 
+import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -24,6 +25,12 @@ import uk.ac.dundee.computing.kb.burnigram.stores.Globals;
  */
 @WebServlet(name = "Register", urlPatterns = { "/Register" })
 public class Register extends HttpServlet {
+	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	public static final String NAME_ERROR_REQUEST = "errorMessage";
 
 	public void init(ServletConfig config) throws ServletException {
 		// TODO Auto-generated method stub
@@ -50,13 +57,21 @@ public class Register extends HttpServlet {
 		String email 	  = request.getParameter("email");
 		String firstname  = request.getParameter("firstname");
 		String lastname = request.getParameter("secondname");
-
+		
 		User user = new User(username,firstname,lastname,email);
-		if (user.registerUser(password)) {
-			response.sendRedirect(Globals.ROOT_PATH);
-		} else {
-//			request.setAttribute("errorMessage", "Incorrect Username");
-			response.sendRedirect("register.jsp");
+		RequestDispatcher rd = request
+				.getRequestDispatcher("register.jsp");
+		
+		try {
+			if (user.registerUser(password)) {
+				response.sendRedirect(Globals.ROOT_PATH);
+			} else {
+				request.setAttribute(NAME_ERROR_REQUEST, "Please try Again");
+				rd.forward(request, response);
+			}
+		} catch (Throwable error) {
+			request.setAttribute(NAME_ERROR_REQUEST, error.getMessage());
+			rd.forward(request, response);
 		}
 
 	}

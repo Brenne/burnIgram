@@ -1,4 +1,4 @@
-<%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%@page contentType="text/html" pageEncoding="UTF-8"%><%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <!DOCTYPE html>
 <html>
 <head>
@@ -12,6 +12,9 @@
 	<jsp:include page="include/navigation.jsp"></jsp:include>
 
 	<h3>Login</h3>
+	<c:if test="${requestScope.errorMessage != null}">
+     			<div id="error">${requestScope.errorMessage}</div>
+			</c:if>
 	<form method="POST" id="loginForm" action="Login">
 		<ul>
 			<li>User Name <input type="text" id="username" name="username"></li>
@@ -19,51 +22,7 @@
 		</ul><input type="hidden" id="hidden" name="hidden"/>
 		<br /> <input type="submit" value="Login">
 	</form>
-	<script type="text/javascript">
-		$(document).ready(function() {
-
-			$('#loginForm').submit(function() {
-				
-				var username = $('#username').val();
-				var pass = $('#password').val();
-				if (username.empty || pass.empty) {
-					return false;
-				}else{
-					$.ajax({
-						url : '${Globals.root_path}/Login',
-						async : false,
-						data : {
-							saltfor : username
-						},
-						type : 'POST',
-						datatype : 'json',
-
-						success : function(data) {
-
-							var response = $.parseJSON(data);
-							if (response.salt == 'false') {
-								return false;
-							}
-							//substitute password with 0s
-							var value = Array(pass.length + 1).join("0");
-							$('#password').val(value);
-							pass = SHA1(pass);
-							var hash = SHA1(response.salt + pass);
-							$('#hidden').val(hash);
-
-						},
-						failure : function() {
-							message('true', 'No connection to server');
-						}
-					});
-					//to finally submit the form
-					return true;
-				}
-
-				
-			});
-		});
-	</script>
+	<script type="text/javascript" src="${Globals.root_path}/js/login.js.jsp"></script>
 	<script type="text/javascript" src="${Globals.root_path}/js/sha1.js"></script>
 	<jsp:include page="include/footer.jsp" />
 </body>

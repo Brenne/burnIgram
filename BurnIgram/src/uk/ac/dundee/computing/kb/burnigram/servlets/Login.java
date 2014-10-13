@@ -55,28 +55,34 @@ public class Login extends HttpServlet {
 			HttpServletResponse response) throws ServletException, IOException {
 
 		String saltFor = request.getParameter("saltfor");
-
+		HttpSession session = request.getSession();
 		if (saltFor != null && !saltFor.isEmpty()) {
-			// salt process
 			if (!User.userNameExists(saltFor)) {
-				// no username so no salt
+				RequestDispatcher rd = request
+						.getRequestDispatcher("login.jsp");
+				/*
+				 * we know that the username is wrong but don't want to reveal the information
+				 * that this user exists. Therefore we respond with a more general error message 
+				 */
+				request.setAttribute("errorMessage", "Invalid username or password");
+				response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+				rd.forward(request, response);
 				return;
 			} else {
 				
 				String str = randomString();
 				String responseString = "{\"salt\":\"" + str + "\"}";
-				HttpSession session = request.getSession();
 				session.setAttribute("salt", str);
 				response.setContentType("text/html");
 				response.getWriter().write(responseString);
 			}
-		} else if(request.isRequestedSessionIdFromCookie()) {
+		} else if(request.isRequestedSessionIdFromCookie() && 
+				session.getAttribute("salt") != null) {
 			// general login process
 			String username = request.getParameter("username");
 			if (username == null || username.isEmpty())
 				return;
-			String saltetPw = request.getParameter("hidden");
-			HttpSession session = request.getSession();
+			String saltetPw = request.getParameter("hidden");	
 			String salt = (String) session.getAttribute("salt");
 			session.removeAttribute("salt");
 			User user = new User(username);
@@ -97,8 +103,13 @@ public class Login extends HttpServlet {
 
 			} else {
 				System.out.println("invalid user");
-				response.sendRedirect(Globals.ROOT_PATH + "/login.jsp");
+				RequestDispatcher rd = request
+						.getRequestDispatcher("login.jsp");
+				request.setAttribute("errorMessage", "Invalid username or password");
+				rd.forward(request, response);
 			}
+		} else {
+			response.sendError(HttpServletResponse.SC_BAD_REQUEST);
 		}
 
 	}

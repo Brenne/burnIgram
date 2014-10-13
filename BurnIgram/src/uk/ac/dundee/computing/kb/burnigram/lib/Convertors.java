@@ -1,10 +1,14 @@
 package uk.ac.dundee.computing.kb.burnigram.lib;
 
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.StringTokenizer;
 
-
+import javax.imageio.ImageIO;
 //import java.util.UUID;
 import javax.servlet.http.HttpServletRequest;
 
@@ -61,12 +65,49 @@ public final class Convertors {
         }
         return value;
     }
+    
+	public static byte[] bufferedImageToByteArray(BufferedImage bufferedImage,
+			String formatString) {
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		byte[] imageInByte = null;
+		try {
+			if (!ImageIO.write(bufferedImage, formatString, baos)) {
+				System.err
+						.println("Error in bufferdImageToByteArray no ImageIO reader found "
+								+ "for type " + formatString);
+			}
+			baos.flush();
+			imageInByte = baos.toByteArray();
+			baos.close();
+		} catch (IOException exception) {
+			System.err.println("IOExecption in bufferedImageToByte Array");
+			exception.printStackTrace();
+		}
+		return imageInByte;
+
+	}
+
+	public static BufferedImage byteArrayToBufferedImage(byte[] byteArray) {
+		BufferedImage buffImage;
+		try {
+			ByteArrayInputStream is = new ByteArrayInputStream(byteArray);
+			buffImage = ImageIO.read(is);
+			is.close();
+		} catch (IOException ioEx) {
+			System.err
+					.println("byteArrayToBufferedImage cannot read from input stream ");
+			ioEx.printStackTrace();
+			buffImage = new BufferedImage(1, 1, BufferedImage.TYPE_BYTE_BINARY);
+		}
+		return buffImage;
+	}
+
 
     public static void displayByteArrayAsHex(byte[] buffer) {
         int byteArrayLength = buffer.length;
         for (int i = 0; i < byteArrayLength; i++) {
             int val = (int) buffer[i];
-            // System.out.print(Integer.toHexString(val)+",");
+            System.out.print(Integer.toHexString(val)+",");
         }
 
 	  //System.out.println();

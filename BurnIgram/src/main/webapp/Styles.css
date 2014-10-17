@@ -19,21 +19,36 @@ and open the template in the editor.
 	font-size: small;
 }
 
-.register input{
+.register input, .login input{
 	width:250px;
+	margin-bottom: 5px;
+	margin-top: 5px;
 }
 
-.register li{
+.register li, .login li{
 	list-style: none;
 }
-.register label{
+.register label, .login label{
 	padding-right: 10px;
+	margin-top: 5px;
+	position: relative;
+	width: 80px;
+	float: left;
 }
 
-#error {
+#btnregister, #btnlogin{
+	position: relative;
+	margin-left: 40px;
+	width: 100px;
+	
+}
+
+#error, .userexists {
 	
 	font-weight: bold;
 	color: red;
 	
 }
+
+
 

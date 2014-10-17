@@ -97,9 +97,10 @@ public class Login extends HttpServlet {
 
 				session.setAttribute(SESSION_NAME_LOGIN, lg);
 				System.out.println("Session in servlet " + session);
-				RequestDispatcher rd = request
-						.getRequestDispatcher("index.jsp");
-				rd.forward(request, response);
+//				RequestDispatcher rd = request
+//						.getRequestDispatcher("index.jsp");
+//				rd.forward(request, response);
+				response.sendRedirect("index.jsp");
 
 			} else {
 				System.out.println("invalid user");
@@ -109,7 +110,8 @@ public class Login extends HttpServlet {
 				rd.forward(request, response);
 			}
 		} else {
-			response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+			response.sendRedirect("login.jsp");
 		}
 
 	}

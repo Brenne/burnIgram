@@ -7,7 +7,6 @@
 <jsp:include page="include/head.jsp" />
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>${Globals.app_name}- Pics of ${Username}</title>
-<script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
 </head>
 <body>
 	<jsp:include page="include/header.jsp" />

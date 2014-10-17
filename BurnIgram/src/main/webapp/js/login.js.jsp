@@ -1,3 +1,4 @@
+<%@page contentType="text/javascript" pageEncoding="UTF-8"%>
 /**
  * login.js for secure login
  */
@@ -8,12 +9,12 @@ $(document).ready(function() {
 
 		var username = $('#username').val();
 		var pass = $('#password').val();
-
+		var returnvalue = false;
 		if (username.length === 0 || pass.length == 0) {
 			alert("Please insert an username and password!")
 			return false;
 		} else {
-			return $.ajax({
+			$.ajax({
 				url : '${Globals.root_path}/Login',
 				async : false,
 				data : {
@@ -34,16 +35,22 @@ $(document).ready(function() {
 					pass = SHA1(pass);
 					var hash = SHA1(response.salt + pass);
 					$('#hidden').val(hash);
+					returnvalue = true;
 					return true;
 
 				},
 				failure : function() {
 					message('false', 'No connection to server');
 					return false;
+				},
+				error : function(data){
+					document.write(data.responseText);
+					return false;
 				}
+				
 			});
-			//to finally submit the form
-			/* return true; */
+			
+			 return returnvalue;
 
 		}
 

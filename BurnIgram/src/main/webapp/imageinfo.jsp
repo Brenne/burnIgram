@@ -6,7 +6,6 @@
 <jsp:include page="include/head.jsp" />
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>${Globals.app_name}</title>
-<script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
 </head>
 <body>
 	<jsp:include page="include/header.jsp" />
@@ -27,12 +26,13 @@
 	<button class="brightness" id="dark">Darker</button>
 	<button class="brightness" id="bright">Brighter</button>
 	<h3>Comments:</h3>
-	
+	<c:if test="${loggedIn.logedin}">
 	<p><strong>Add a new comment:</strong></p>
 	<form method="POST" action="${Globals.root_path}/Comment/${Pic.SUUID}">
 		<input type="text" value="" name="contents"/><br>
 		<input type="submit" value="comment" name="sendComment"/>
 	</form>
+	</c:if>
 	<div id="comments">
 	<c:forEach items="${Comments}" var="Comment">
 		<p class="comment">
@@ -41,7 +41,8 @@
 		</p>
 	</c:forEach>
 	</div>
-	<script type="text/javascript" src="${Globals.root_path}/imageinfo.js.jsp"></script>
+	<script type="text/javascript">var picid ="${Pic.SUUID}"</script>
+	<script type="text/javascript" src="${Globals.root_path}/js/imageinfo.js.jsp"></script>
 	
 </body>
 </html>

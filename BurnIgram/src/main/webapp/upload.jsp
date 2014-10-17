@@ -1,10 +1,3 @@
-<%-- 
-    Document   : upload
-    Created on : Sep 22, 2014, 6:31:50 PM
-    Author     : Administrator
---%>
-
-<%@page import="uk.ac.dundee.computing.kb.burnigram.stores.Globals"%>
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <!DOCTYPE html>
 <html>

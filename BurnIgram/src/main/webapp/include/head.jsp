@@ -8,3 +8,4 @@
 <link rel="shortcut icon" href="${Globals.root_path}/favicon.ico"
 	type="image/x-icon">
 <link rel="icon" href="${Globals.root_path}/favicon.ico" type="image/x-icon">
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>

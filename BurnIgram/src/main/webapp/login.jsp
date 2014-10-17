@@ -5,7 +5,6 @@
 <jsp:include page="include/head.jsp" />
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>${Globals.app_name }</title>
-<script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
 </head>
 <body>
 	<jsp:include page="include/header.jsp"></jsp:include>
@@ -15,12 +14,12 @@
 	<c:if test="${requestScope.errorMessage != null}">
      			<div id="error">${requestScope.errorMessage}</div>
 			</c:if>
-	<form method="POST" id="loginForm" action="Login">
+	<form method="POST" id="loginForm" class="login" action="Login">
 		<ul>
-			<li>User Name <input type="text" id="username" name="username"></li>
-			<li>Password <input type="password" id="password" name="password"></li>
+			<li><label>user name </label><input type="text" id="username" name="username"></li>
+			<li><label>password </label><input type="password" id="password" name="password"></li>
 		</ul><input type="hidden" id="hidden" name="hidden"/>
-		<br /> <input type="submit" value="Login">
+		<input id="btnlogin" type="submit" value="Login">
 	</form>
 	<script type="text/javascript" src="${Globals.root_path}/js/login.js.jsp"></script>
 	<script type="text/javascript" src="${Globals.root_path}/js/sha1.js"></script>

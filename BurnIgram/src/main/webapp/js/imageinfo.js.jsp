@@ -1,15 +1,18 @@
+<%@page contentType="text/javascript" pageEncoding="UTF-8"%>
 /**
  * javascript source for imageinfo.jsp
  */
 
-$(".brightness").click(
+$(".brightness, .rotate").click(
 		function() {
+			//value is e.g. "right","left","dark","bright"
 			var value = this.id;
-
+			//manipulation is e.g. "rotate" or "brightness"
+			var manipulation = this.className;	
 			$.ajax({
-				url : "${Globals.root_path}/Image/${Pic.SUUID}",
+				url : "${Globals.root_path}/Image/"+picid,
 				dataType : "text",
-				data : "brightness," + value,
+				data : manipulation+"," + value,
 				type : "PUT"
 			}).done(
 					function() {
@@ -17,28 +20,7 @@ $(".brightness").click(
 						//the date is added as parameter to prevent browser from fetching image from cache
 						$("#thumb").attr(
 								"src",
-								"${Globals.root_path}/Thumb/${Pic.SUUID}?"
-										+ d.getTime());
-					})
-
-		});
-
-$(".rotate").click(
-		function() {
-			var direction = this.id;
-			console.log(direction);
-			$.ajax({
-				url : "${Globals.root_path}/Image/${Pic.SUUID}",
-				data : "rotate," + direction,
-				dataType : "text",
-				type : "PUT"
-			}).done(
-					function() {
-						var d = new Date();
-						//the date is added as parameter to prevent browser from fetching image from cache
-						$("#thumb").attr(
-								"src",
-								"${Globals.root_path}/Thumb/${Pic.SUUID}?"
+								"${Globals.root_path}/Thumb/"+picid+"?"
 										+ d.getTime());
 					})
 

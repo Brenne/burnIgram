@@ -182,6 +182,15 @@ public class User {
 		}
 	}
 	
+	public void deleteProfilePic(){
+		Session session = cluster.connect(Keyspaces.KEYSPACE_NAME);
+		PreparedStatement ps1 = session
+				.prepare("UPDATE userprofiles SET profilepic=NULL WHERE login=?");
+		session.execute(ps1.bind(this.username));
+		this.profilepic=null;
+		
+	}
+	
 	public static User initUserFromDB(String userName) {
 		User user = new User();
 		user.username = userName;

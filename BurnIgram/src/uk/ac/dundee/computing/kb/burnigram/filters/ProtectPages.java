@@ -23,6 +23,7 @@ import javax.servlet.annotation.WebFilter;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
+import uk.ac.dundee.computing.kb.burnigram.lib.Convertors;
 import uk.ac.dundee.computing.kb.burnigram.servlets.Login;
 import uk.ac.dundee.computing.kb.burnigram.stores.LoggedIn;
 
@@ -30,8 +31,9 @@ import uk.ac.dundee.computing.kb.burnigram.stores.LoggedIn;
  *
  * @author Administrator
  */
-@WebFilter(filterName = "ProtectPages", urlPatterns = { "/upload.jsp" }, dispatcherTypes = {
-		DispatcherType.REQUEST, DispatcherType.FORWARD, DispatcherType.INCLUDE })
+@WebFilter(filterName = "ProtectPages", 
+urlPatterns = {"/profile.jsp", "/upload.jsp","/include/*" }, dispatcherTypes = {
+		DispatcherType.REQUEST, DispatcherType.FORWARD})
 public class ProtectPages implements Filter {
 
 	private static final boolean debug = true;
@@ -116,14 +118,20 @@ public class ProtectPages implements Filter {
 		System.out.println("Doing filter");
 		HttpServletRequest httpReq = (HttpServletRequest) request;
 		HttpSession session = httpReq.getSession(false);
-		LoggedIn li = (LoggedIn) session.getAttribute(Login.SESSION_NAME_LOGIN);
+		LoggedIn li = null;
+		if(session !=null)
+			li = (LoggedIn) session.getAttribute(Login.SESSION_NAME_LOGIN);
 		System.out.println("Session in filter " + session);
+		RequestDispatcher rd=null;
 		if ((li == null) || (li.getLogedin() == false)) {
 			System.out.println("Foward to login");
-			RequestDispatcher rd = request.getRequestDispatcher("/login.jsp");
-			rd.forward(request, response);
-
+			rd = request.getRequestDispatcher("/login.jsp");
 		}
+		if(includeFolderAccess(httpReq)){
+			rd = request.getRequestDispatcher("/index.jsp");
+		}
+		if(rd != null)
+			rd.forward(request, response);
 		Throwable problem = null;
 		try {
 			chain.doFilter(request, response);
@@ -245,6 +253,20 @@ public class ProtectPages implements Filter {
 
 	public void log(String msg) {
 		filterConfig.getServletContext().log(msg);
+	}
+	
+	private boolean includeFolderAccess(HttpServletRequest request){
+		boolean includeFolderAccessed = false;
+		String args[] = Convertors.SplitRequestPath(request);
+		try{
+			if(args[1].equals("include")){
+				System.out.println("tried to acces include folder");
+				includeFolderAccessed = true;
+			}
+		}catch(ArrayIndexOutOfBoundsException ex){
+			
+		}
+		return includeFolderAccessed;
 	}
 
 }

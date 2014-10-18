@@ -267,6 +267,9 @@ public class PicModel {
 			System.err.println("Cannot delete Picture with pic is null");
 			return;
 		}
+		if(pic.getUser().getProfilepicId().equals(pic.getUUID())){
+			pic.getUser().deleteProfilePic();
+		}
 		Session session = cluster.connect(Keyspaces.KEYSPACE_NAME);
 		PreparedStatement ps1 = session
 				.prepare("DELETE FROM pics WHERE picid=?");
@@ -277,7 +280,7 @@ public class PicModel {
 
 		session.close();
 	}
-	
+			
 	public User getPicOwnerFromDB(UUID picid){
 		SimpleStatement st = new SimpleStatement("SELECT user FROM pics WHERE picid=?",picid);
 		Session session = this.cluster.connect(Keyspaces.KEYSPACE_NAME);

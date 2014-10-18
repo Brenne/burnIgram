@@ -127,8 +127,12 @@ public class Image extends HttpServlet {
 			//user can not delete pictures of other users
 			resp.sendError(HttpServletResponse.SC_FORBIDDEN);
 			return;
+		}else{
+			picModel.deletePic(pic);
+			//user may have no profilepicture anymore
+			loggedIn.setUser(pic.getUser());
 		}
-		picModel.deletePic(pic);
+		
 	}
 
 	private void DisplayImageList(String username, HttpServletRequest request,

@@ -13,7 +13,9 @@ import uk.ac.dundee.computing.kb.burnigram.lib.Convertors;
 import uk.ac.dundee.computing.kb.burnigram.models.User;
 
 /**
- * Servlet implementation class Ajax
+ * Currently this servlet only provides a API for checking
+ * if a username exists. More APIs used by ajax requests can be added
+ * here in future
  */
 @WebServlet({"/Username/","/Username/*"})
 public class Ajax extends HttpServlet {

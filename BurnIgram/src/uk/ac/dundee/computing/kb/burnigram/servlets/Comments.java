@@ -45,10 +45,10 @@ public class Comments extends HttpServlet {
 	 */
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		LoggedIn loggedIn = (LoggedIn) request.getSession().getAttribute(Login.SESSION_NAME_LOGIN);
-		if(loggedIn == null || !loggedIn.getLogedin()){
-			response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
-			return;
-		}
+//		if(loggedIn == null || !loggedIn.getLogedin()){
+//			response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+//			return;
+//		}
 		String content = (String) request.getParameter("contents");
 		String args[] = Convertors.SplitRequestPath(request);
 		UUID picid = null;
@@ -69,6 +69,13 @@ public class Comments extends HttpServlet {
 		}
 		 
 
+	}
+	
+	@Override
+	protected void doDelete(HttpServletRequest req, HttpServletResponse resp)
+			throws ServletException, IOException {
+		// TODO Auto-generated method stub
+		super.doDelete(req, resp);
 	}
 
 }

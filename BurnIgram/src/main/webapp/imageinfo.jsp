@@ -23,7 +23,7 @@
 		<p>
 			<button class="brightness" id="dark">Darker</button>
 			<button class="brightness" id="bright">Brighter</button>
-		<h3>Comments:</h3>
+		<h2>Comments:</h2>
 		<c:if test="${loggedIn.logedin}">
 			<p>
 				<strong>Add a new comment:</strong>
@@ -36,8 +36,10 @@
 		</c:if>
 		<div id="comments">
 			<c:forEach items="${Comments}" var="Comment">
+				<c:set value="${Comment.user.username}" var="commenter"/>
 				<p class="comment">
-					${Comment.user.username} added ${Comment.created}<br> <span
+					<a class="commenter" title="Go to ${commenter}'s image page"
+					href="${Globals.root_path}/Images/${commenter}">${commenter}</a> added ${Comment.createdS}<br> <span
 						class="commentContents">${Comment.content}</span>
 				</p>
 			</c:forEach>

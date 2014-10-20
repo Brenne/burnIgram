@@ -15,7 +15,7 @@
 		<c:if test="${requestScope.errorMessage != null}">
 			<div id="error">${requestScope.errorMessage}</div>
 		</c:if>
-		<form method="POST" id="loginForm" class="login" action="Login">
+		<form method="POST" id="loginForm" class="login" action="${Globals.root_path}/Login">
 			<ul>
 				<li><label>user name </label><input type="text" id="username"
 					name="username"></li>

@@ -11,9 +11,6 @@
 #nav li {
     list-style: none;
     display: inline;
-    position: relative;
-    width: 50px;
-    height: 35px;
     border-style: solid;
     padding: 20px;
     background-color: yellowgreen;
@@ -22,22 +19,28 @@
 }
 
 body {
+	margin: 0 auto;
     background-color: orange;
     font-family: sans-serif;
+    width: 800px;
 }
-.content, #header, #nav{
-	margin: 0 auto;
-	width: 800px;
-}
+
 .content{
 	position:relative;
+	left: 120px;
 }
 
 #header{
 	position:relative;
 	top:60px;
-	height: 145px;
+	height: 160px;
 	font-family: serif;
+}
+
+.burningchair{
+	float:left;
+	margin-right: 15px;
+	
 }
 
 .footer{
@@ -89,6 +92,12 @@ body {
 	display: none;
 	font-weight: bold;
 	color: green;
+}
+
+.commenter{
+	text-decoration: none;
+	color:green;
+	font-weight: bold;
 }
 
 

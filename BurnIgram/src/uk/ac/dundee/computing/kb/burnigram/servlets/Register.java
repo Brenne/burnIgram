@@ -7,6 +7,8 @@
 package uk.ac.dundee.computing.kb.burnigram.servlets;
 
 import java.io.IOException;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletConfig;
@@ -57,8 +59,9 @@ public class Register extends HttpServlet {
 		String email 	  = request.getParameter("email");
 		String firstname  = request.getParameter("firstname");
 		String lastname = request.getParameter("secondname");
-		
-		User user = new User(username,firstname,lastname,email);
+		Set<String> emailSet = new LinkedHashSet<String>(1);
+		emailSet.add(email);
+		User user = new User(username,firstname,lastname,emailSet);
 		RequestDispatcher rd = request
 				.getRequestDispatcher("register.jsp");
 		

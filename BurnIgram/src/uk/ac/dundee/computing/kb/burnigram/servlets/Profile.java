@@ -1,7 +1,12 @@
 package uk.ac.dundee.computing.kb.burnigram.servlets;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.URLDecoder;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.UUID;
 
 import javax.servlet.ServletException;
@@ -12,6 +17,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import uk.ac.dundee.computing.kb.burnigram.lib.Convertors;
 import uk.ac.dundee.computing.kb.burnigram.models.PicModel;
+import uk.ac.dundee.computing.kb.burnigram.models.User;
 import uk.ac.dundee.computing.kb.burnigram.stores.LoggedIn;
 import uk.ac.dundee.computing.kb.burnigram.stores.Pic;
 
@@ -55,17 +61,24 @@ public class Profile extends HttpServlet {
 				UUID pictureId = UUID.fromString(args[3]);
 				PicModel pictureModel = new PicModel();
 				Pic picture = pictureModel.getPicFromDB(Convertors.DISPLAY_ORIGINAL_IMAGE, pictureId);
-				loggedIn.getUser().changeProfilepic(picture);
+				loggedIn.getUser().setProfilepic(picture.getUUID());
+				loggedIn.getUser().updateUser();
+				break;
+			case "Email":
+				BufferedReader br = new BufferedReader(new InputStreamReader(request.getInputStream()));
+				String data = br.readLine();
+				br.close();
+				if(data.startsWith("email=")){
+					data=URLDecoder.decode(data,"UTF-8");
+					data=data.replace("email=", "");
+					String[] emails = data.split(",");
+					LinkedHashSet<String> emailSet = new LinkedHashSet<String>(Arrays.asList(emails));
+					loggedIn.getUser().setEmail(emailSet);
+					loggedIn.getUser().updateUser();
+				}
 				
-				
-			
 		}
       
-        try {
-          
-        } catch (Exception et) {
-           
-        }
 		
 	}
 

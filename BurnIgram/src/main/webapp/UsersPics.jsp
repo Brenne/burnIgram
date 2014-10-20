@@ -12,7 +12,7 @@
 	<jsp:include page="include/header.jsp" />
 	<jsp:include page="include/navigation.jsp" />
 	<div class="content">
-		<h1>
+		<h2>
 			<c:choose>
 				<c:when test="${Username==loggedIn.user.username}">
 				Your Pics
@@ -21,7 +21,7 @@
 				Pics of ${Username}
 			</c:otherwise>
 			</c:choose>
-		</h1>
+		</h2>
 		<div class="success"></div>
 		<c:forEach items="${Pics}" var="pic">
 			<p class="pic">

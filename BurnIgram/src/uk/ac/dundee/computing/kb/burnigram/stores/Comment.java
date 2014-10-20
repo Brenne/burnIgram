@@ -1,5 +1,6 @@
 package uk.ac.dundee.computing.kb.burnigram.stores;
 
+import java.util.Calendar;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
@@ -38,6 +39,19 @@ public class Comment {
 
 	public Date getCreated() {
 		return created;
+	}
+	
+	public String getCreatedS(){
+	    Calendar cal = Calendar.getInstance();
+	    cal.setTime(created);
+	    int year = cal.get(Calendar.YEAR);
+	    int month = cal.get(Calendar.MONTH);
+	    int day = cal.get(Calendar.DAY_OF_MONTH);
+	    int hours = cal.get(Calendar.HOUR_OF_DAY);
+	    int minutes = cal.get(Calendar.MINUTE);
+	    String returnString = String.format("%02d:%02d on %d/%d/%d", 
+	    		hours,minutes,day,month,year);
+	    return returnString;
 	}
 
 	public User getUser() {

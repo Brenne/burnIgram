@@ -104,14 +104,13 @@ public class PicModel {
 
 		Session session = cluster.connect(Keyspaces.KEYSPACE_NAME);
 		PreparedStatement psInsertPic = session
-				.prepare("insert into pics ( picid, image,thumb,processed, user, interaction_time,imagelength,thumblength,processedlength,type,name,rotation) values(?,?,?,?,?,?,?,?,?,?,?,?)");
+				.prepare("insert into pics ( picid, image,thumb,processed, user, interaction_time,imagelength,thumblength,processedlength,type,name) values(?,?,?,?,?,?,?,?,?,?,?)");
 		PreparedStatement psInsertPicToUser = session
 				.prepare("insert into userpiclist ( picid, user, pic_added) values(?,?,?)");
 
 		session.execute(psInsertPic.bind(picid, imageInByte, thumbbuf,
 				processedbuf, username, currentTimestamp, b.length,
-				thumbInByte.length, processedInByte.length, contentType, name,
-				0));
+				thumbInByte.length, processedInByte.length, contentType, name));
 		session.execute(psInsertPicToUser.bind(picid, username,
 				currentTimestamp));
 		session.close();
@@ -277,6 +276,9 @@ public class PicModel {
 		PreparedStatement ps2 = session
 				.prepare("DELETE FROM userpiclist WHERE picid=?");
 		session.execute(ps2.bind(pic.getUUID()));
+		PreparedStatement ps3 = session
+				.prepare("DELETE FROM comments WHERE picid=?");
+		session.execute(ps3.bind(pic.getUUID()));
 
 		session.close();
 	}

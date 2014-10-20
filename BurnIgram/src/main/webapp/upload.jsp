@@ -11,7 +11,7 @@
 	<jsp:include page="include/navigation.jsp" />
 	<div class="content">
 
-		<h3>File Upload</h3>
+		<h2>File Upload</h2>
 		<form method="POST" enctype="multipart/form-data" action="Image">
 			File to upload: <input type="file" name="upfile"><br /> <br />
 			<input type="submit" value="Press"> to upload the file!

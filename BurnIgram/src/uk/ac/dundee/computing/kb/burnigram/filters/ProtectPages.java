@@ -32,7 +32,7 @@ import uk.ac.dundee.computing.kb.burnigram.stores.LoggedIn;
  * @author Administrator
  */
 @WebFilter(filterName = "ProtectPages", 
-urlPatterns = {"/profile.jsp", "/upload.jsp","/include/*","/Comment/*" }, dispatcherTypes = {
+urlPatterns = {"/Profile/*","/profile.jsp", "/upload.jsp","/include/*","/Comment/*" }, dispatcherTypes = {
 		DispatcherType.REQUEST, DispatcherType.FORWARD})
 public class ProtectPages implements Filter {
 

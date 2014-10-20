@@ -13,7 +13,7 @@
 	<jsp:include page="include/navigation.jsp" />
 	<div class="content">
 
-		<h3>Register as a new user</h3>
+		<h2>Register as a new user</h2>
 		<c:if test="${requestScope.errorMessage != null}">
 			<div id="error">${requestScope.errorMessage}</div>
 		</c:if>

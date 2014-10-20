@@ -37,10 +37,6 @@ public class ImageInfo extends HttpServlet {
 	 */
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		
-		LoggedIn loggedIn = (LoggedIn) request.getSession().getAttribute("loggedIn");
-		if(loggedIn != null && loggedIn.getLogedin()){
-			
-		}
 		String args[] = Convertors.SplitRequestPath(request);
 		UUID picid = UUID.fromString(args[2]);
 		PicModel picModel = new PicModel();

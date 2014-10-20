@@ -35,7 +35,7 @@ public final class Keyspaces {
 				+ "PRIMARY KEY (picid,pic_added)\n"
 				+ ") WITH CLUSTERING ORDER BY (pic_added desc);";
 
-		final String CreateIndexOnUser = "CREATE INDEX IF NOT EXISTS userpiclist_user ON "
+		final String CreatePicsIndexOnUser = "CREATE INDEX IF NOT EXISTS userpiclist_user ON "
 						+KEYSPACE_NAME+".userpiclist (user);";
 		
 		final String CreateAddressType = "CREATE TYPE if not exists " + KEYSPACE_NAME
@@ -94,9 +94,9 @@ public final class Keyspaces {
 			System.err.println("Can't create userpiclist table " + et);
 		}
 		
-		System.out.println("" + CreateIndexOnUser);
+		System.out.println("" + CreatePicsIndexOnUser);
 		try{
-			SimpleStatement cqlQuery = new SimpleStatement(CreateIndexOnUser);
+			SimpleStatement cqlQuery = new SimpleStatement(CreatePicsIndexOnUser);
 			session.execute(cqlQuery);
 		}catch(Exception et){
 			System.err.println("Can't create index on user in userpiclist "+ et);

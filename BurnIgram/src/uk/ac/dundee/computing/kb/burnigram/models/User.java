@@ -8,6 +8,7 @@ package uk.ac.dundee.computing.kb.burnigram.models;
 
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -33,7 +34,7 @@ public class User {
 	private String username;
 	private String firstname;
 	private String lastname;
-	private String email;
+	private Set<String> email;
 	private UUID profilepic;
 
 	public User() {
@@ -42,7 +43,7 @@ public class User {
 	}
 
 	public User(String username, String firstname, String lastname,
-			String email) {
+			Set<String> email) {
 		this(username);
 		this.firstname = firstname;
 		this.lastname = lastname;
@@ -67,12 +68,28 @@ public class User {
 		return lastname;
 	}
 
-	public String getEmail() {
+	public Set<String> getEmail() {
 		return email;
 	}
 
 	public UUID getProfilepicId() {
 		return profilepic;
+	}
+
+	public void setFirstname(String firstname) {
+		this.firstname = firstname;
+	}
+
+	public void setLastname(String lastname) {
+		this.lastname = lastname;
+	}
+
+	public void setEmail(Set<String> email) {
+		this.email = email;
+	}
+
+	public void setProfilepic(UUID profilepic) {
+		this.profilepic = profilepic;
 	}
 
 	public boolean registerUser(String password) throws Throwable {
@@ -94,15 +111,28 @@ public class User {
 				+ "(login,password,first_name,last_name,email) "
 				+ "Values(?,?,?,?,?)");
 
-		Set<String> email = new LinkedHashSet<String>(1);
-		email.add(this.email);
 		session.execute( // this is where the query is executed
 
 		ps.bind(
 		// here you are binding the 'boundStatement'
-		this.username, encodedPassword, this.firstname, this.lastname, email));
+		this.username, encodedPassword, this.firstname, this.lastname, this.email));
 		session.close();
 		return true;
+	}
+	
+	public boolean updateUser(){
+		if (!userNameExists()) {
+			//ensures that where query will match a entry
+			return false;
+		} else {
+			Session session = cluster.connect(Keyspaces.KEYSPACE_NAME);
+			PreparedStatement ps = session.prepare("UPDATE userprofiles "
+					+ " SET first_name=? ,last_name=?,email=?,profilepic=? WHERE login=?");
+			session.execute(ps.bind(this.firstname,this.lastname,this.email,this.profilepic,
+					this.username));
+			session.close();
+			return true;
+		}
 	}
 
 	public boolean isValidUser(String password, String salt) {
@@ -165,22 +195,6 @@ public class User {
 			return true;
 		}
 	}
-
-	public boolean changeProfilepic(Pic picture) {
-		if (!userNameExists()) {
-			//ensures that where query will match a entry
-			return false;
-		} else {
-			Session session = cluster.connect(Keyspaces.KEYSPACE_NAME);
-			PreparedStatement ps = session.prepare("UPDATE userprofiles "
-					+ " SET profilepic=? WHERE login=?");
-			session.execute(ps.bind(picture.getUUID(),
-					this.username));
-			session.close();
-			this.profilepic = picture.getUUID();
-			return true;
-		}
-	}
 	
 	public void deleteProfilePic(){
 		Session session = cluster.connect(Keyspaces.KEYSPACE_NAME);
@@ -208,8 +222,7 @@ public class User {
 			Row rowUser = rsUser.one();
 			this.firstname = rowUser.getString("first_name");
 			this.lastname = rowUser.getString("last_name");
-			Set<String> emailSet = rowUser.getSet("email", String.class);
-			this.email = emailSet.toString();
+			this.email = rowUser.getSet("email", String.class);
 			this.profilepic = rowUser.getUUID("profilepic");
 
 		}

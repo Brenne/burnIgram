@@ -3,14 +3,12 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package uk.ac.dundee.computing.kb.burnigram.stores;
+package uk.ac.dundee.computing.kb.burnigram.beans;
 
 
 
 import java.nio.ByteBuffer;
 import java.util.Date;
-
-import uk.ac.dundee.computing.kb.burnigram.models.User;
 
 import com.datastax.driver.core.utils.Bytes;
 

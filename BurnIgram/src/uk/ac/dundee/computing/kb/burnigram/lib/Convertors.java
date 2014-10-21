@@ -12,7 +12,7 @@ import javax.imageio.ImageIO;
 //import java.util.UUID;
 import javax.servlet.http.HttpServletRequest;
 
-import uk.ac.dundee.computing.kb.burnigram.stores.Globals;
+import uk.ac.dundee.computing.kb.burnigram.beans.Globals;
 
 public final class Convertors {
     public static final int DISPLAY_ORIGINAL_IMAGE=0;

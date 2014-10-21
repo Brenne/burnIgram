@@ -5,11 +5,11 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Set;
 import java.util.UUID;
 
+import uk.ac.dundee.computing.kb.burnigram.beans.Globals;
+import uk.ac.dundee.computing.kb.burnigram.beans.User;
 import uk.ac.dundee.computing.kb.burnigram.lib.AeSimpleSHA1;
 import uk.ac.dundee.computing.kb.burnigram.lib.CassandraHosts;
 import uk.ac.dundee.computing.kb.burnigram.lib.Keyspaces;
-import uk.ac.dundee.computing.kb.burnigram.models.User;
-import uk.ac.dundee.computing.kb.burnigram.stores.Globals;
 
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.PreparedStatement;
@@ -24,7 +24,7 @@ public class UserDbHelper {
 	public UserDbHelper() {
 		this.cluster = CassandraHosts.getCluster();
 	}
-
+	
 	public boolean registerUser(User user, String encodedPassword) {
 
 		Session session = cluster.connect(Keyspaces.KEYSPACE_NAME);

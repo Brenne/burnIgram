@@ -1,7 +1,7 @@
 <jsp:useBean id="Globals"
-	class="uk.ac.dundee.computing.kb.burnigram.stores.Globals"
+	class="uk.ac.dundee.computing.kb.burnigram.beans.Globals"
 	scope="application" /><jsp:useBean id="loggedIn"
-	class="uk.ac.dundee.computing.kb.burnigram.stores.LoggedIn"
+	class="uk.ac.dundee.computing.kb.burnigram.beans.LoggedIn"
 	scope="session" />
 <link rel="stylesheet" type="text/css"
 	href="${Globals.root_path}/Styles.css" />

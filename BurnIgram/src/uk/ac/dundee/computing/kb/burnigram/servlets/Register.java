@@ -18,8 +18,8 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import uk.ac.dundee.computing.kb.burnigram.models.User;
-import uk.ac.dundee.computing.kb.burnigram.stores.Globals;
+import uk.ac.dundee.computing.kb.burnigram.beans.Globals;
+import uk.ac.dundee.computing.kb.burnigram.beans.User;
 
 /**
  *

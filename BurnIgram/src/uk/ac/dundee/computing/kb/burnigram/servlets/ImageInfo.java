@@ -11,10 +11,11 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import uk.ac.dundee.computing.kb.burnigram.beans.Comment;
+import uk.ac.dundee.computing.kb.burnigram.beans.Pic;
+import uk.ac.dundee.computing.kb.burnigram.dbHelpers.CommentDbHelper;
 import uk.ac.dundee.computing.kb.burnigram.dbHelpers.PicDbHelper;
 import uk.ac.dundee.computing.kb.burnigram.lib.Convertors;
-import uk.ac.dundee.computing.kb.burnigram.stores.Comment;
-import uk.ac.dundee.computing.kb.burnigram.stores.Pic;
 
 /**
  * Servlet implementation class ImageInfo
@@ -41,7 +42,8 @@ public class ImageInfo extends HttpServlet {
 		PicDbHelper picDbHelper = new PicDbHelper();
 		Pic pic = picDbHelper.getPicFromDB(Convertors.DISPLAY_PROCESSED, picid);
 		
-		List<Comment> comments = Comment.getCommentListFromDbByPicid(picid);
+		CommentDbHelper dbHelper = new CommentDbHelper();
+		List<Comment> comments = dbHelper.getCommentListFromDbByPicid(picid);
         RequestDispatcher rd = request.getRequestDispatcher("/imageinfo.jsp");
         request.setAttribute("Pic", pic);
         request.setAttribute("Comments", comments);

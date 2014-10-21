@@ -4,9 +4,8 @@
  * and open the template in the editor.
  */
 
-package uk.ac.dundee.computing.kb.burnigram.stores;
+package uk.ac.dundee.computing.kb.burnigram.beans;
 
-import uk.ac.dundee.computing.kb.burnigram.models.User;
 
 /**
  *

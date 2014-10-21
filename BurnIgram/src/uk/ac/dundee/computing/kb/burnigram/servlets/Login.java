@@ -18,9 +18,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import uk.ac.dundee.computing.kb.burnigram.beans.LoggedIn;
+import uk.ac.dundee.computing.kb.burnigram.beans.User;
 import uk.ac.dundee.computing.kb.burnigram.dbHelpers.UserDbHelper;
-import uk.ac.dundee.computing.kb.burnigram.models.User;
-import uk.ac.dundee.computing.kb.burnigram.stores.LoggedIn;
 
 /**
  *
@@ -53,8 +53,9 @@ public class Login extends HttpServlet {
 
 		String saltFor = request.getParameter("saltfor");
 		HttpSession session = request.getSession();
+		UserDbHelper userDbHelper = new UserDbHelper();
 		if (saltFor != null && !saltFor.isEmpty()) {
-			if (!User.userNameExists(saltFor)) {
+			if (!userDbHelper.userNameExists(saltFor)) {
 				RequestDispatcher rd = request
 						.getRequestDispatcher("login.jsp");
 				/*
@@ -82,10 +83,10 @@ public class Login extends HttpServlet {
 			String saltetPw = request.getParameter("hidden");	
 			String salt = (String) session.getAttribute("salt");
 			session.removeAttribute("salt");
-			UserDbHelper userDbHelper = new UserDbHelper();
+			
 			
 			if (userDbHelper.isValidUser(username,saltetPw,salt)) {
-				User user = User.initUserFromDB(username);
+				User user = userDbHelper.getUserFromDb(username);
 				
 				System.out.println("Session in servlet " + session);
 				LoggedIn lg = new LoggedIn();

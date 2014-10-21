@@ -3,7 +3,7 @@ package uk.ac.dundee.computing.kb.burnigram.lib;
 import java.util.Iterator;
 import java.util.Set;
 
-import uk.ac.dundee.computing.kb.burnigram.stores.Globals;
+import uk.ac.dundee.computing.kb.burnigram.beans.Globals;
 
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.Host;

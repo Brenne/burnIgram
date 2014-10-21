@@ -23,10 +23,10 @@ import javax.servlet.annotation.WebFilter;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
+import uk.ac.dundee.computing.kb.burnigram.beans.Globals;
+import uk.ac.dundee.computing.kb.burnigram.beans.LoggedIn;
 import uk.ac.dundee.computing.kb.burnigram.lib.Convertors;
 import uk.ac.dundee.computing.kb.burnigram.servlets.Login;
-import uk.ac.dundee.computing.kb.burnigram.stores.Globals;
-import uk.ac.dundee.computing.kb.burnigram.stores.LoggedIn;
 
 /**
  *

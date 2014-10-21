@@ -24,12 +24,13 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import javax.servlet.http.Part;
 
+import uk.ac.dundee.computing.kb.burnigram.beans.Globals;
+import uk.ac.dundee.computing.kb.burnigram.beans.LoggedIn;
+import uk.ac.dundee.computing.kb.burnigram.beans.Pic;
+import uk.ac.dundee.computing.kb.burnigram.beans.User;
 import uk.ac.dundee.computing.kb.burnigram.dbHelpers.PicDbHelper;
+import uk.ac.dundee.computing.kb.burnigram.dbHelpers.UserDbHelper;
 import uk.ac.dundee.computing.kb.burnigram.lib.Convertors;
-import uk.ac.dundee.computing.kb.burnigram.models.User;
-import uk.ac.dundee.computing.kb.burnigram.stores.Globals;
-import uk.ac.dundee.computing.kb.burnigram.stores.LoggedIn;
-import uk.ac.dundee.computing.kb.burnigram.stores.Pic;
 
 /**
  * Servlet implementation class Image
@@ -83,7 +84,8 @@ public class Image extends HttpServlet {
 			DisplayImage(Convertors.DISPLAY_PROCESSED, args[2], response);
 			break;
 		case 2:
-			if (User.userNameExists(args[2])) {
+			UserDbHelper dbHelper = new UserDbHelper();
+			if (dbHelper.userNameExists(args[2])) {
 				DisplayImageList(args[2], request, response);
 			} else {
 				response.setStatus(HttpServletResponse.SC_NOT_FOUND);
@@ -137,7 +139,8 @@ public class Image extends HttpServlet {
 
 	private void DisplayImageList(String username, HttpServletRequest request,
 			HttpServletResponse response) throws ServletException, IOException {
-		if (!User.userNameExists(username)) {
+		UserDbHelper dbHelper = new UserDbHelper();
+		if (!dbHelper.userNameExists(username)) {
 			response.sendRedirect(Globals.ROOT_PATH + "/index.jsp");
 		} else {
 			PicDbHelper tm = new PicDbHelper();

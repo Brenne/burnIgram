@@ -31,45 +31,7 @@
 	</c:if>
 	</div>
 	
-	<script type="text/javascript">
-	$("document").ready(function(){
-		$(".success").hide();
-	});
-	$("input[name='email']").change(function(){
-		var emailList = "";
-		$("input[name='email']").each(function() {
-			var emailValue = $(this).val();
-			if(emailValue.indexOf("@")!==-1){
-				emailList=emailList+$(this).val()+",";
-			}
-		    
-		});
-					$.ajax({
-						url : "${Globals.root_path}/Profile/Email",
-						
-						data : {email:emailList},
-						type : "PUT"
-					}).done(
-							function() {
-								$(".success").fadeIn(500).delay(2000).fadeOut(500);
-								addMailInput()
-							})
-
-			
-	});
-	
-	function addMailInput(){
-		var lastInputMail =$("input[name='email']").last().clone();
-		if($(lastInputMail).val()!=""){
-			
-			$(lastInputMail).insertBefore($("#lastEmail"));
-			$("#lastEmail").before("<br/>");
-			$("input[name='email']").last().val('');
-
-			
-		}
-	}
-	</script>
+	<script type="text/javascript" src="js/profile.js.jsp"></script>
 	<jsp:include page="include/footer.jsp"></jsp:include>
 </body>
 </html>

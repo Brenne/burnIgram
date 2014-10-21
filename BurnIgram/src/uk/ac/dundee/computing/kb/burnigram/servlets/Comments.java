@@ -10,10 +10,11 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import uk.ac.dundee.computing.kb.burnigram.beans.Comment;
+import uk.ac.dundee.computing.kb.burnigram.beans.Globals;
+import uk.ac.dundee.computing.kb.burnigram.beans.LoggedIn;
+import uk.ac.dundee.computing.kb.burnigram.dbHelpers.CommentDbHelper;
 import uk.ac.dundee.computing.kb.burnigram.lib.Convertors;
-import uk.ac.dundee.computing.kb.burnigram.stores.Comment;
-import uk.ac.dundee.computing.kb.burnigram.stores.Globals;
-import uk.ac.dundee.computing.kb.burnigram.stores.LoggedIn;
 
 /**
  * Servlet implementation class Comment
@@ -62,7 +63,8 @@ public class Comments extends HttpServlet {
 		}
 		Date currentTime = new Date();
 		Comment comment = new Comment(picid, currentTime, loggedIn.getUser(), content);
-		if(comment.insertCommentIntoDB()){
+		CommentDbHelper dbHelper = new CommentDbHelper();
+		if(dbHelper.insertComment(comment)){
 			response.setStatus(HttpServletResponse.SC_CREATED);
 			response.sendRedirect(Globals.ROOT_PATH+"/ImageInfo/"+picid.toString());
 			

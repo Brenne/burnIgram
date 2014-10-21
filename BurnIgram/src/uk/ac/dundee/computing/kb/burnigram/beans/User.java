@@ -4,7 +4,7 @@
  * and open the template in the editor.
  */
 
-package uk.ac.dundee.computing.kb.burnigram.models;
+package uk.ac.dundee.computing.kb.burnigram.beans;
 
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
@@ -111,18 +111,9 @@ public class User {
 	}
 	
 	public void deleteProfilePic(){
+		this.profilepic = null;
 		UserDbHelper dbHelper = new UserDbHelper();
 		dbHelper.deleteProfilePic(this.username);
-	}
-	
-	public static User initUserFromDB(String username){
-		UserDbHelper dbHelper = new UserDbHelper();
-		return dbHelper.getUserFromDb(username);
-	}
-	
-	public static boolean userNameExists(String username){
-		UserDbHelper dbHelper = new UserDbHelper();
-		return dbHelper.userNameExists(username);
 	}
 
 }

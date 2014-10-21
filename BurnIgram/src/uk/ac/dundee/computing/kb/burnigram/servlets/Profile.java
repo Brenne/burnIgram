@@ -15,11 +15,11 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import uk.ac.dundee.computing.kb.burnigram.beans.LoggedIn;
+import uk.ac.dundee.computing.kb.burnigram.beans.Pic;
 import uk.ac.dundee.computing.kb.burnigram.dbHelpers.PicDbHelper;
 import uk.ac.dundee.computing.kb.burnigram.dbHelpers.UserDbHelper;
 import uk.ac.dundee.computing.kb.burnigram.lib.Convertors;
-import uk.ac.dundee.computing.kb.burnigram.stores.LoggedIn;
-import uk.ac.dundee.computing.kb.burnigram.stores.Pic;
 
 /**
  * Servlet implementation class Profile

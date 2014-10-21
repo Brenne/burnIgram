@@ -1,4 +1,4 @@
-package uk.ac.dundee.computing.kb.burnigram.stores;
+package uk.ac.dundee.computing.kb.burnigram.beans;
 
 public final class Globals {
 	

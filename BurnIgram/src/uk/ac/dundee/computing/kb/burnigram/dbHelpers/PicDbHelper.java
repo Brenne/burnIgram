@@ -7,13 +7,13 @@ import java.util.LinkedList;
 import java.util.UUID;
 import java.util.Map.Entry;
 
+import uk.ac.dundee.computing.kb.burnigram.beans.Globals;
+import uk.ac.dundee.computing.kb.burnigram.beans.Pic;
+import uk.ac.dundee.computing.kb.burnigram.beans.User;
+import uk.ac.dundee.computing.kb.burnigram.controller.PicController;
 import uk.ac.dundee.computing.kb.burnigram.lib.CassandraHosts;
 import uk.ac.dundee.computing.kb.burnigram.lib.Convertors;
 import uk.ac.dundee.computing.kb.burnigram.lib.Keyspaces;
-import uk.ac.dundee.computing.kb.burnigram.models.PicController;
-import uk.ac.dundee.computing.kb.burnigram.models.User;
-import uk.ac.dundee.computing.kb.burnigram.stores.Globals;
-import uk.ac.dundee.computing.kb.burnigram.stores.Pic;
 
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.PreparedStatement;
@@ -147,8 +147,11 @@ public class PicDbHelper {
 			System.err.println("Cannot delete Picture with pic is null");
 			return;
 		}
-		//if picowner has pic as his profilepic then delte his profilepic
-		if(pic.getUser().getProfilepicId().equals(pic.getUUID())){
+		
+		UUID profilePicOfPicOwner = pic.getUser().getProfilepicId();
+		//if picowner has a profilepic and this is his profilepic then delte his profilepic
+		if(profilePicOfPicOwner !=null &&
+		pic.getUser().getProfilepicId().equals(pic.getUUID())){
 			pic.getUser().deleteProfilePic();
 		}
 		//TODO what if another user (not picowner) has this pic as his profilepic
@@ -175,8 +178,8 @@ public class PicDbHelper {
 			Row row = rs.one();
 			String username = row.getString(0);
 			if(username != null && !username.isEmpty()){
-				User user = User.initUserFromDB(username);
-				return user;
+				UserDbHelper dbHelper = new UserDbHelper();
+				return dbHelper.getUserFromDb(username);
 			}else{
 				System.err.println("getPicOwnerFromDB picture found but now owner");
 			}
@@ -225,9 +228,11 @@ public class PicDbHelper {
 			length = row.getInt(imageType+LENGTH);
 			String type = row.getString("type");
 			Date date = row.getDate("interaction_time");
-			User user = User.initUserFromDB(row.getString("user"));
+			String username = row.getString("user");
 			String picname = row.getString("name");
 			session.close();
+			UserDbHelper dbHelper = new UserDbHelper();
+			User user =  dbHelper.getUserFromDb(username);
 			Pic p = new Pic();
 			p.setPic(bImage, length, type, date, user, picname);
 			p.setUUID(picid);

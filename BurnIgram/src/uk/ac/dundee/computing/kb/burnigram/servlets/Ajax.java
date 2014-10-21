@@ -9,8 +9,9 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import uk.ac.dundee.computing.kb.burnigram.beans.User;
+import uk.ac.dundee.computing.kb.burnigram.dbHelpers.UserDbHelper;
 import uk.ac.dundee.computing.kb.burnigram.lib.Convertors;
-import uk.ac.dundee.computing.kb.burnigram.models.User;
 
 /**
  * Currently this servlet only provides a API for checking
@@ -41,7 +42,8 @@ public class Ajax extends HttpServlet {
 			System.err.println("Invalid request to ajax servlet");
 		}
 		PrintWriter writer = response.getWriter();
-		if( User.userNameExists(username)){
+		UserDbHelper dbHelper = new UserDbHelper();
+		if( dbHelper.userNameExists(username)){
 			writer.write("true");
 		}else{
 			writer.write("false");

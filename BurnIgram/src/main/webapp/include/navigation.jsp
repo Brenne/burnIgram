@@ -1,7 +1,7 @@
 <jsp:useBean id="loggedIn"
-	class="uk.ac.dundee.computing.kb.burnigram.stores.LoggedIn"
+	class="uk.ac.dundee.computing.kb.burnigram.beans.LoggedIn"
 	scope="session" />
-<%@ page import="uk.ac.dundee.computing.kb.burnigram.stores.Globals" %>
+<%@ page import="uk.ac.dundee.computing.kb.burnigram.beans.Globals" %>
 
 <div id="nav">
 	<ul>

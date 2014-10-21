@@ -1,4 +1,4 @@
-<%@page import="uk.ac.dundee.computing.kb.burnigram.stores.Globals"%>
+<%@page import="uk.ac.dundee.computing.kb.burnigram.beans.Globals"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <!DOCTYPE html>

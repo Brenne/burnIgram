@@ -1,4 +1,4 @@
-package uk.ac.dundee.computing.kb.burnigram.models;
+package uk.ac.dundee.computing.kb.burnigram.controller;
 
 import static org.imgscalr.Scalr.OP_ANTIALIAS;
 import static org.imgscalr.Scalr.OP_BRIGHTER;
@@ -17,9 +17,9 @@ import java.util.UUID;
 import org.imgscalr.Scalr.Method;
 import org.imgscalr.Scalr.Rotation;
 
+import uk.ac.dundee.computing.kb.burnigram.beans.Pic;
 import uk.ac.dundee.computing.kb.burnigram.dbHelpers.PicDbHelper;
 import uk.ac.dundee.computing.kb.burnigram.lib.Convertors;
-import uk.ac.dundee.computing.kb.burnigram.stores.Pic;
 
 import com.jhlabs.image.EdgeFilter;
 import com.jhlabs.image.GrayFilter;
@@ -39,7 +39,7 @@ public class PicController {
 	private static final String RIGHT = "right";
 	private static final String DARK = "dark";
 	private static final String BRIGHT = "bright";
-
+	private static final String MAGIC = "magic";
 	
 	private int imageTypeFlag = 0;
 
@@ -49,6 +49,7 @@ public class PicController {
 		myList.add(ROTATE);
 		myList.add(BRIGHTNESS);
 		myList.add(ORIGINAL);
+		myList.add(MAGIC);
 		manipulationKeyList = Collections.unmodifiableList(myList);
 	}
 
@@ -131,7 +132,7 @@ public class PicController {
 		return buffImage;
 	}
 	
-	public static BufferedImage changeContrast(BufferedImage buffImage, String contrast){
+	public static BufferedImage magicFilter(BufferedImage buffImage, String filterType){
 		EdgeFilter edgeFilter = new EdgeFilter();
 		edgeFilter.setHEdgeMatrix(EdgeFilter.SOBEL_V);
 //		ContrastFilter contrastFilter = new ContrastFilter();
@@ -142,12 +143,12 @@ public class PicController {
 //		System.out.println("applied contrast"+Float.toString(appliedContrast));
 //		contrastFilter.setContrast(0.55f);
 	
-		BufferedImage dest = edgeFilter.createCompatibleDestImage(buffImage, null);
-		edgeFilter.filter(buffImage, dest);
-		edgeFilter.filter(buffImage, dest);
+		BufferedImage edgeDest = edgeFilter.createCompatibleDestImage(buffImage, null);
+		edgeFilter.filter(buffImage, edgeDest);
+		
 		GrayFilter greyFilter = new GrayFilter();
-		BufferedImage greyDest = greyFilter.createCompatibleDestImage(dest, null);
-		greyFilter.filter(dest, greyDest);
+		BufferedImage greyDest = greyFilter.createCompatibleDestImage(edgeDest, null);
+		greyFilter.filter(edgeDest, greyDest);
 		
 		InvertFilter invertFilter = new InvertFilter();
 		BufferedImage invDest = invertFilter.createCompatibleDestImage(greyDest, null);
@@ -198,10 +199,10 @@ public class PicController {
 			manipulatedBuffImg = changeBrighteness(manipulatedBuffImg,
 					manipulationValue);
 			break;
-//		case CONTRAST:
-//			manipulatedBuffImg = changeContrast(manipulatedBuffImg,
-//					manipulationValue);
-//			break;
+		case MAGIC:
+			manipulatedBuffImg = magicFilter(manipulatedBuffImg,
+					manipulationValue);
+			break;
 		case ORIGINAL:
 			if(imageTypeFlag == 0){
 				manipulatedBuffImg=revertToOriginal(pic.getUUID(), Convertors.DISPLAY_PROCESSED);

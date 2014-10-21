@@ -30,3 +30,16 @@ function sendAjaxRequest(manipulationKey,manipulationValue){
 								+ d.getTime());
 			})
 }
+
+$(".deleteComment").click(function(){
+	var parentP=$(this).parent();
+	var commentId = parentP.attr("id");
+	$.ajax({
+		url:"${Globals.root_path}/Comment/" + commentId,
+		type : "DELETE"
+	}).done(function(){
+		parentP.hide();
+		
+	})
+
+});

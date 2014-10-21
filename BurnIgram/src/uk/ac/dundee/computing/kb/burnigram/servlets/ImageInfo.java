@@ -43,7 +43,7 @@ public class ImageInfo extends HttpServlet {
 		Pic pic = picDbHelper.getPicFromDB(Convertors.DISPLAY_PROCESSED, picid);
 		
 		CommentDbHelper dbHelper = new CommentDbHelper();
-		List<Comment> comments = dbHelper.getCommentListFromDbByPicid(picid);
+		List<Comment> comments = dbHelper.getCommentListByPicid(picid);
         RequestDispatcher rd = request.getRequestDispatcher("/imageinfo.jsp");
         request.setAttribute("Pic", pic);
         request.setAttribute("Comments", comments);

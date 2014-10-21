@@ -76,10 +76,35 @@ public class Comments extends HttpServlet {
 	}
 	
 	@Override
-	protected void doDelete(HttpServletRequest req, HttpServletResponse resp)
+	protected void doDelete(HttpServletRequest request, HttpServletResponse resp)
 			throws ServletException, IOException {
-		// TODO Auto-generated method stub
-		super.doDelete(req, resp);
+		
+		LoggedIn loggedIn = (LoggedIn) request.getSession().getAttribute(Login.SESSION_NAME_LOGIN);
+		
+		String args[] = Convertors.SplitRequestPath(request);
+		CommentDbHelper commentDbHelper = new CommentDbHelper();
+		UUID commentId = null;
+		try{
+			commentId = UUID.fromString(args[2]);
+			if(commentId == null){
+				//no comment 
+				return;
+			}
+		}catch(ArrayIndexOutOfBoundsException | IllegalArgumentException ex){
+			resp.sendError(HttpServletResponse.SC_BAD_REQUEST);
+			return;
+		}
+		Comment comment = commentDbHelper.getCommentById(commentId);
+		if(!comment.getUser().getUsername().equals(loggedIn.getUser().getUsername())){
+			//user can not delete comments of other users
+			resp.sendError(HttpServletResponse.SC_FORBIDDEN);
+			return;
+		}else{
+			commentDbHelper.deleteCommentById(commentId);;
+			
+		}
+		
+		
 	}
 
 }

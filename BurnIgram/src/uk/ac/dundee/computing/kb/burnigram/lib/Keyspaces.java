@@ -52,15 +52,16 @@ public final class Keyspaces {
 				+ " profilepic uuid \n" + "  );";
 		
 		final String CreatePictureComment = "CREATE TABLE IF NOT EXISTS "+KEYSPACE_NAME + ".comments(\n"
+				+ " id uuid, \n"
 				+ " user varchar,\n"
 				+ " comment text,\n"
 				+ " picid uuid,\n"
 				+ " comment_added timestamp,\n"
-				+ " PRIMARY KEY (picid, comment_added))"
+				+ " PRIMARY KEY (id, comment_added))"
 				+ " WITH CLUSTERING ORDER BY (comment_added DESC);";
 		
-		final String CreateCommentUserIndex  = "CREATE INDEX IF NOT EXISTS comment_user_index ON "+
-				KEYSPACE_NAME+".comments (user);";
+		final String CreateCommentPicidIndex  = "CREATE INDEX IF NOT EXISTS comment_picid_index ON "+
+				KEYSPACE_NAME+".comments (picid);";
 		Session session = null;
 		try{
 			session = c.connect();
@@ -126,9 +127,9 @@ public final class Keyspaces {
 			System.err.println("Can't create comment " + et);
 		}
 		
-		System.out.println("" + CreateCommentUserIndex);
+		System.out.println("" + CreateCommentPicidIndex);
 		try {
-			SimpleStatement cqlQuery = new SimpleStatement(CreateCommentUserIndex);
+			SimpleStatement cqlQuery = new SimpleStatement(CreateCommentPicidIndex);
 			session.execute(cqlQuery);
 		} catch (Exception et) {
 			System.err.println("Can't create index on comment(user)" + et);

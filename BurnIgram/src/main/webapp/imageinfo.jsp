@@ -44,10 +44,17 @@
 		<div id="comments">
 			<c:forEach items="${Comments}" var="Comment">
 				<c:set value="${Comment.user.username}" var="commenter"/>
-				<p class="comment">
+				<p id="${Comment.id}" class="comment">
 					<a class="commenter" title="Go to ${commenter}'s image page"
 					href="${Globals.root_path}/Images/${commenter}">${commenter}</a> added ${Comment.createdS}<br> <span
 						class="commentContents">${Comment.content}</span>
+					<% //Display delete button only when loggedIn user is commenter %>
+					<c:choose>
+					<c:when test="${commenter==loggedIn.user.username}">
+						<button class="deleteComment">Delete</button>
+					</c:when>
+					</c:choose>
+						
 				</p>
 			</c:forEach>
 		</div>

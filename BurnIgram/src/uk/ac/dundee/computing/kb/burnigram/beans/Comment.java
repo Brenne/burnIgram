@@ -4,22 +4,35 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.UUID;
 
+import uk.ac.dundee.computing.kb.burnigram.lib.Convertors;
+
 public class Comment {
 	
+	private UUID id;
 	private UUID picid;
 	private Date created;
 	private User user;
 	private String content;
 	
 	public Comment(){
-		
+		this.id= Convertors.getTimeUUID();
 	}
 	
 	public Comment(UUID picid, Date created, User user, String content){
+		this();
 		this.picid = picid;
 		this.created = created;
 		this.user = user;
 		this.content = content;
+	}
+	
+	public Comment(UUID id, UUID picid, Date created, User user, String content){
+		this(picid, created, user, content);
+		this.id= id;
+	}
+
+	public UUID getId() {
+		return id;
 	}
 
 	public UUID getPicid() {

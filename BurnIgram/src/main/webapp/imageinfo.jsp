@@ -16,13 +16,20 @@
 			src="${Globals.root_path}/Thumb/${Pic.SUUID}">
 		</a> <br> Name: ${Pic.name} <br> Owner: ${Pic.user.username} <br>
 		<a href="${Globals.root_path}/OriginalImage/${Pic.SUUID}">Display
-			Original Image</a> <br>
-
+			Original Image </a> 
+			<button class="original" id="original">Revert to original</button><br>
+		<h3>Manipulations: </h3>
 		<button class="rotate" id="left">Rotate left</button>
 		<button class="rotate" id="right">Rotate right</button>
-		<p>
+		
 			<button class="brightness" id="dark">Darker</button>
 			<button class="brightness" id="bright">Brighter</button>
+		
+		
+		<p>Magic Filter (experimental)<br>
+			<button class="magic" id="sketch">Sketch</button>
+		</p>
+		
 		<h2>Comments:</h2>
 		<c:if test="${loggedIn.logedin}">
 			<p>

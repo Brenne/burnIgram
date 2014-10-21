@@ -12,6 +12,8 @@ import javax.imageio.ImageIO;
 //import java.util.UUID;
 import javax.servlet.http.HttpServletRequest;
 
+import uk.ac.dundee.computing.kb.burnigram.stores.Globals;
+
 public final class Convertors {
     public static final int DISPLAY_ORIGINAL_IMAGE=0;
     public static final int DISPLAY_THUMB=1;
@@ -199,7 +201,8 @@ public final class Convertors {
 
             args[argv] = st.nextToken();
             try {
-                System.out.println("String was "+URLDecoder.decode(args[argv],"UTF-8"));
+            	if(Globals.DEBUG)
+            		System.out.println("String was "+URLDecoder.decode(args[argv],"UTF-8"));
                 args[argv] = URLDecoder.decode(args[argv], "UTF-8");
 
             } catch (UnsupportedEncodingException et) {

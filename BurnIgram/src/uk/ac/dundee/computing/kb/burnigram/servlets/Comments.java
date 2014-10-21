@@ -17,6 +17,8 @@ import uk.ac.dundee.computing.kb.burnigram.stores.LoggedIn;
 
 /**
  * Servlet implementation class Comment
+ * currently only the onPost method is supported
+ * 
  */
 @WebServlet("/Comment/*")
 public class Comments extends HttpServlet {
@@ -34,8 +36,8 @@ public class Comments extends HttpServlet {
 	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
 	 */
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		String args[] = Convertors.SplitRequestPath(request);
-		UUID picid = UUID.fromString(args[2]);
+//		String args[] = Convertors.SplitRequestPath(request);
+//		UUID picid = UUID.fromString(args[2]);
 
 		
 	}

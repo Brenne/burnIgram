@@ -15,9 +15,9 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import uk.ac.dundee.computing.kb.burnigram.dbHelpers.PicDbHelper;
+import uk.ac.dundee.computing.kb.burnigram.dbHelpers.UserDbHelper;
 import uk.ac.dundee.computing.kb.burnigram.lib.Convertors;
-import uk.ac.dundee.computing.kb.burnigram.models.PicModel;
-import uk.ac.dundee.computing.kb.burnigram.models.User;
 import uk.ac.dundee.computing.kb.burnigram.stores.LoggedIn;
 import uk.ac.dundee.computing.kb.burnigram.stores.Pic;
 
@@ -55,14 +55,18 @@ public class Profile extends HttpServlet {
 		if(loggedIn.getUser()==null){
 			return;
 		}
+		UserDbHelper userDbHelper = new UserDbHelper();
 		switch(args[2]){
 			case "Profilepic":
 				//TODO check if args[3] is not empty or null
 				UUID pictureId = UUID.fromString(args[3]);
-				PicModel pictureModel = new PicModel();
-				Pic picture = pictureModel.getPicFromDB(Convertors.DISPLAY_ORIGINAL_IMAGE, pictureId);
+				PicDbHelper picDbHelper = new PicDbHelper();
+				Pic picture = picDbHelper.getPicFromDB(Convertors.DISPLAY_ORIGINAL_IMAGE, pictureId);
 				loggedIn.getUser().setProfilepic(picture.getUUID());
-				loggedIn.getUser().updateUser();
+				
+				if(!userDbHelper.updateUser(loggedIn.getUser())){
+					System.err.println("Can not update user in DB");
+				}
 				break;
 			case "Email":
 				BufferedReader br = new BufferedReader(new InputStreamReader(request.getInputStream()));
@@ -74,7 +78,10 @@ public class Profile extends HttpServlet {
 					String[] emails = data.split(",");
 					LinkedHashSet<String> emailSet = new LinkedHashSet<String>(Arrays.asList(emails));
 					loggedIn.getUser().setEmail(emailSet);
-					loggedIn.getUser().updateUser();
+					userDbHelper = new UserDbHelper();
+					if(!userDbHelper.updateUser(loggedIn.getUser())){
+						System.err.println("Can not update user in DB");
+					}
 				}
 				
 		}

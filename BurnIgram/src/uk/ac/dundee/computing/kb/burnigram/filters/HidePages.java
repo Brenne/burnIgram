@@ -16,6 +16,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import uk.ac.dundee.computing.kb.burnigram.servlets.Login;
+import uk.ac.dundee.computing.kb.burnigram.stores.Globals;
 import uk.ac.dundee.computing.kb.burnigram.stores.LoggedIn;
 
 /**
@@ -56,7 +57,8 @@ public class HidePages implements Filter {
 		if(session != null){
 			LoggedIn lg = (LoggedIn) session.getAttribute(Login.SESSION_NAME_LOGIN);
 			if(lg != null && lg.getLogedin()){
-				System.out.println("forward to index.jsp");
+				if(Globals.DEBUG)
+					System.out.println("forward to index.jsp");
 				RequestDispatcher rd = request.getRequestDispatcher("/index.jsp");
 				rd.forward(request, response);
 			}

@@ -4,6 +4,7 @@ public final class Globals {
 	
 	public final static String APP_NAME = "Burnigram";
 	public final static String ROOT_PATH ="/Burnigram";
+	public final static boolean DEBUG = true;
 	private String app_name = APP_NAME;
 	private String root_path = ROOT_PATH;
 	

@@ -11,10 +11,9 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import uk.ac.dundee.computing.kb.burnigram.dbHelpers.PicDbHelper;
 import uk.ac.dundee.computing.kb.burnigram.lib.Convertors;
-import uk.ac.dundee.computing.kb.burnigram.models.PicModel;
 import uk.ac.dundee.computing.kb.burnigram.stores.Comment;
-import uk.ac.dundee.computing.kb.burnigram.stores.LoggedIn;
 import uk.ac.dundee.computing.kb.burnigram.stores.Pic;
 
 /**
@@ -39,8 +38,8 @@ public class ImageInfo extends HttpServlet {
 		
 		String args[] = Convertors.SplitRequestPath(request);
 		UUID picid = UUID.fromString(args[2]);
-		PicModel picModel = new PicModel();
-		Pic pic = picModel.getPicFromDB(Convertors.DISPLAY_PROCESSED, picid);
+		PicDbHelper picDbHelper = new PicDbHelper();
+		Pic pic = picDbHelper.getPicFromDB(Convertors.DISPLAY_PROCESSED, picid);
 		
 		List<Comment> comments = Comment.getCommentListFromDbByPicid(picid);
         RequestDispatcher rd = request.getRequestDispatcher("/imageinfo.jsp");

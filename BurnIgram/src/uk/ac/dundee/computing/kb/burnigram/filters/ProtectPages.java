@@ -25,6 +25,7 @@ import javax.servlet.http.HttpSession;
 
 import uk.ac.dundee.computing.kb.burnigram.lib.Convertors;
 import uk.ac.dundee.computing.kb.burnigram.servlets.Login;
+import uk.ac.dundee.computing.kb.burnigram.stores.Globals;
 import uk.ac.dundee.computing.kb.burnigram.stores.LoggedIn;
 
 /**
@@ -36,8 +37,7 @@ urlPatterns = {"/Profile/*","/profile.jsp", "/upload.jsp","/include/*","/Comment
 		DispatcherType.REQUEST, DispatcherType.FORWARD})
 public class ProtectPages implements Filter {
 
-	private static final boolean debug = true;
-
+	
 	// The filter configuration object we are associated with. If
 	// this value is null, this filter instance is not currently
 	// configured.
@@ -48,7 +48,7 @@ public class ProtectPages implements Filter {
 
 	private void doBeforeProcessing(ServletRequest request,
 			ServletResponse response) throws IOException, ServletException {
-		if (debug) {
+		if (Globals.DEBUG) {
 			log("ProtectPages:DoBeforeProcessing");
 		}
 
@@ -69,7 +69,7 @@ public class ProtectPages implements Filter {
 
 	private void doAfterProcessing(ServletRequest request,
 			ServletResponse response) throws IOException, ServletException {
-		if (debug) {
+		if (Globals.DEBUG) {
 			log("ProtectPages:DoAfterProcessing");
 		}
 
@@ -110,7 +110,7 @@ public class ProtectPages implements Filter {
 	public void doFilter(ServletRequest request, ServletResponse response,
 			FilterChain chain) throws IOException, ServletException {
 
-		if (debug) {
+		if (Globals.DEBUG) {
 			log("ProtectPages:doFilter()");
 		}
 
@@ -124,7 +124,8 @@ public class ProtectPages implements Filter {
 		System.out.println("Session in filter " + session);
 		RequestDispatcher rd=null;
 		if ((li == null) || (li.getLogedin() == false)) {
-			System.out.println("Foward to login");
+			if(Globals.DEBUG)
+				System.out.println("Foward to login");
 			rd = request.getRequestDispatcher("/login.jsp");
 		}
 		if(includeFolderAccess(httpReq)){
@@ -187,7 +188,7 @@ public class ProtectPages implements Filter {
 	public void init(FilterConfig filterConfig) {
 		this.filterConfig = filterConfig;
 		if (filterConfig != null) {
-			if (debug) {
+			if (Globals.DEBUG) {
 				log("ProtectPages:Initializing filter");
 			}
 		}

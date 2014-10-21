@@ -3,6 +3,8 @@ package uk.ac.dundee.computing.kb.burnigram.lib;
 import java.util.Iterator;
 import java.util.Set;
 
+import uk.ac.dundee.computing.kb.burnigram.stores.Globals;
+
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.Host;
 import com.datastax.driver.core.Metadata;
@@ -35,7 +37,8 @@ public final class CassandraHosts {
     public static String[] getHosts(Cluster cluster) {
 
         if (cluster == null) {
-            System.out.println("Creating cluster connection");
+        	if(Globals.DEBUG)
+        		System.out.println("Creating cluster connection");
             cluster = Cluster.builder().addContactPoint(Host).build();
         }
         System.out.println("Cluster Name " + cluster.getClusterName());
@@ -48,8 +51,8 @@ public final class CassandraHosts {
         while (it.hasNext()) {
             Host ch = it.next();
             sHosts[i] = (String) ch.getAddress().toString();
-
-            System.out.println("Hosts" + ch.getAddress().toString());
+            if(Globals.DEBUG)
+            	System.out.println("Hosts" + ch.getAddress().toString());
             i++;
         }
 
@@ -58,10 +61,12 @@ public final class CassandraHosts {
 
     public static Cluster getCluster() {
     	if(cluster!=null && !cluster.isClosed()){
-    		System.out.println("cluster already loaded");
+    		if(Globals.DEBUG)
+    			System.out.println("cluster already loaded");
     		return cluster;
     	}
-        System.out.println("getCluster");
+    	if(Globals.DEBUG)
+    		System.out.println("getCluster");
         cluster = Cluster.builder()
                 .addContactPoint(Host).build();
         getHosts(cluster);

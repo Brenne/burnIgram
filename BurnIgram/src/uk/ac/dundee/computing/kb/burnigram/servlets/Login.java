@@ -9,10 +9,7 @@ package uk.ac.dundee.computing.kb.burnigram.servlets;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.security.SecureRandom;
-import java.util.Date;
-import java.util.UUID;
 
-import javax.json.JsonObject;
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -21,8 +18,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import uk.ac.dundee.computing.kb.burnigram.dbHelpers.UserDbHelper;
 import uk.ac.dundee.computing.kb.burnigram.models.User;
-import uk.ac.dundee.computing.kb.burnigram.stores.Globals;
 import uk.ac.dundee.computing.kb.burnigram.stores.LoggedIn;
 
 /**
@@ -85,9 +82,10 @@ public class Login extends HttpServlet {
 			String saltetPw = request.getParameter("hidden");	
 			String salt = (String) session.getAttribute("salt");
 			session.removeAttribute("salt");
-			User user = new User(username);
-			if (user.isValidUser(saltetPw,salt)) {
-				user.initUserFromDB();
+			UserDbHelper userDbHelper = new UserDbHelper();
+			
+			if (userDbHelper.isValidUser(username,saltetPw,salt)) {
+				User user = User.initUserFromDB(username);
 				
 				System.out.println("Session in servlet " + session);
 				LoggedIn lg = new LoggedIn();

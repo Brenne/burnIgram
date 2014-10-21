@@ -24,8 +24,8 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import javax.servlet.http.Part;
 
+import uk.ac.dundee.computing.kb.burnigram.dbHelpers.PicDbHelper;
 import uk.ac.dundee.computing.kb.burnigram.lib.Convertors;
-import uk.ac.dundee.computing.kb.burnigram.models.PicModel;
 import uk.ac.dundee.computing.kb.burnigram.models.User;
 import uk.ac.dundee.computing.kb.burnigram.stores.Globals;
 import uk.ac.dundee.computing.kb.burnigram.stores.LoggedIn;
@@ -110,10 +110,10 @@ public class Image extends HttpServlet {
 			return;
 		}
 		String args[] = Convertors.SplitRequestPath(request);
-		PicModel picModel = new PicModel();
+		PicDbHelper picDbHelper = new PicDbHelper();
 		Pic pic;
 		try{
-			pic = picModel.getPicFromDB(Convertors.DISPLAY_ORIGINAL_IMAGE,
+			pic = picDbHelper.getPicFromDB(Convertors.DISPLAY_ORIGINAL_IMAGE,
 				UUID.fromString(args[2]));
 			if(pic == null){
 				//no picture found
@@ -128,7 +128,7 @@ public class Image extends HttpServlet {
 			resp.sendError(HttpServletResponse.SC_FORBIDDEN);
 			return;
 		}else{
-			picModel.deletePic(pic);
+			picDbHelper.deletePic(pic);
 			//user may have no profilepicture anymore
 			loggedIn.setUser(pic.getUser());
 		}
@@ -140,7 +140,7 @@ public class Image extends HttpServlet {
 		if (!User.userNameExists(username)) {
 			response.sendRedirect(Globals.ROOT_PATH + "/index.jsp");
 		} else {
-			PicModel tm = new PicModel();
+			PicDbHelper tm = new PicDbHelper();
 			LinkedList<Pic> pictureList = tm.getPicsForUser(username);
 			RequestDispatcher rd = request
 					.getRequestDispatcher("/UsersPics.jsp");
@@ -153,7 +153,7 @@ public class Image extends HttpServlet {
 
 	private void DisplayImage(int type, String Image,
 			HttpServletResponse response) throws ServletException, IOException {
-		PicModel tm = new PicModel();
+		PicDbHelper tm = new PicDbHelper();
 		Pic p = null;
 		try {
 			p = tm.getPicFromDB(type, java.util.UUID.fromString(Image));
@@ -183,7 +183,8 @@ public class Image extends HttpServlet {
 	protected void doPost(HttpServletRequest request,
 			HttpServletResponse response) throws ServletException, IOException {
 		for (Part part : request.getParts()) {
-			System.out.println("Part Name " + part.getName());
+			if(Globals.DEBUG)
+				System.out.println("Part Name " + part.getName());
 
 			String contentType = part.getContentType();
 			String filename = part.getSubmittedFileName();
@@ -200,10 +201,11 @@ public class Image extends HttpServlet {
 			if (i > 0) {
 				byte[] b = new byte[i + 1];
 				is.read(b);
-				System.out.println("Length : " + b.length);
-				PicModel tm = new PicModel();
+				if(Globals.DEBUG)
+					System.out.println("Length : " + b.length);
+				PicDbHelper picDbHelper = new PicDbHelper();
 
-				tm.insertPic(b, contentType, filename, username);
+				picDbHelper.insertPic(b, contentType, filename, username);
 
 				is.close();
 			}
@@ -228,14 +230,14 @@ public class Image extends HttpServlet {
     	br.close();
     	String[] operationArray = data.split(",");
     	Entry<String,String> operation = null;
-    	PicModel picModel = new PicModel();
+    	PicDbHelper picDbHelper = new PicDbHelper();
     	User user;
     	UUID picid = null;
     	try{
     		//generate a new Entry
     		operation = new AbstractMap.SimpleEntry<String, String>(operationArray[0],operationArray[1]);
     		picid = UUID.fromString(args[2]);
-    		user = picModel.getPicOwnerFromDB(picid);
+    		user = picDbHelper.getPicOwnerFromDB(picid);
     	}catch(IndexOutOfBoundsException | IllegalArgumentException ex){
     		resp.sendError(HttpServletResponse.SC_BAD_REQUEST);
     		return;
@@ -245,7 +247,7 @@ public class Image extends HttpServlet {
    	 		//you can only change your own picture
    	 		resp.sendError(HttpServletResponse.SC_FORBIDDEN);		
    	 	}else{
-   	 		picModel.updatePic(picid,operation);
+   	 		picDbHelper.updatePic(picid,operation);
    	 	}
     }
 }

@@ -1,27 +1,18 @@
-package uk.ac.dundee.computing.kb.burnigram.models;
-
-import static org.imgscalr.Scalr.OP_ANTIALIAS;
-import static org.imgscalr.Scalr.OP_BRIGHTER;
-import static org.imgscalr.Scalr.OP_DARKER;
-import static org.imgscalr.Scalr.OP_GRAYSCALE;
-import static org.imgscalr.Scalr.pad;
-import static org.imgscalr.Scalr.resize;
+package uk.ac.dundee.computing.kb.burnigram.dbHelpers;
 
 import java.awt.image.BufferedImage;
 import java.nio.ByteBuffer;
-import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedList;
-import java.util.List;
-import java.util.Map.Entry;
 import java.util.UUID;
-
-import org.imgscalr.Scalr.Method;
-import org.imgscalr.Scalr.Rotation;
+import java.util.Map.Entry;
 
 import uk.ac.dundee.computing.kb.burnigram.lib.CassandraHosts;
 import uk.ac.dundee.computing.kb.burnigram.lib.Convertors;
 import uk.ac.dundee.computing.kb.burnigram.lib.Keyspaces;
+import uk.ac.dundee.computing.kb.burnigram.models.PicController;
+import uk.ac.dundee.computing.kb.burnigram.models.User;
+import uk.ac.dundee.computing.kb.burnigram.stores.Globals;
 import uk.ac.dundee.computing.kb.burnigram.stores.Pic;
 
 import com.datastax.driver.core.Cluster;
@@ -31,45 +22,14 @@ import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
 import com.datastax.driver.core.SimpleStatement;
 
-public class PicModel {
-
+public class PicDbHelper {
+	
 	private Cluster cluster;
-
-	private static final String ROTATE = "rotate";
-	private static final String BRIGHTNESS = "brightness";
-	private static final String LEFT = "left";
-	private static final String RIGHT = "right";
-	private static final String DARK = "dark";
-	private static final String BRIGHT = "bright";
-
-	private static final List<String> manipulationKeyList;
-	static {
-		LinkedList<String> myList = new LinkedList<String>();
-		myList.add(ROTATE);
-		myList.add(BRIGHTNESS);
-		manipulationKeyList = Collections.unmodifiableList(myList);
+	
+	public PicDbHelper() {
+		this.cluster=CassandraHosts.getCluster();
 	}
-
-	private static final List<String> rotationOperationsList;
-	static {
-		LinkedList<String> myList = new LinkedList<String>();
-		myList.add(LEFT);
-		myList.add(RIGHT);
-		rotationOperationsList = Collections.unmodifiableList(myList);
-	}
-
-	private static final List<String> brightnessOperationsList;
-	static {
-		LinkedList<String> myList = new LinkedList<String>();
-		myList.add(DARK);
-		myList.add(BRIGHT);
-		brightnessOperationsList = Collections.unmodifiableList(myList);
-	}
-
-	public PicModel() {
-		this.cluster = CassandraHosts.getCluster();
-	}
-
+	
 	/**
 	 * 
 	 * @param b
@@ -87,22 +47,22 @@ public class PicModel {
 		java.util.UUID picid = Convertors.getTimeUUID();
 
 		BufferedImage bufferedImg = Convertors.byteArrayToBufferedImage(b);
-		bufferedImg = blackAndWhite(bufferedImg);
+		bufferedImg = PicController.blackAndWhite(bufferedImg);
 		ByteBuffer imageInByte = ByteBuffer.wrap(b);
 
 		// Creating thumbnail image
-		BufferedImage thumbnail = createThumbnail(bufferedImg);
+		BufferedImage thumbnail = PicController.createThumbnail(bufferedImg);
 		byte[] thumbInByte = Convertors.bufferedImageToByteArray(thumbnail, types[1]);
 		ByteBuffer thumbbuf = ByteBuffer.wrap(thumbInByte);
 
 		// Creating processed image
-		BufferedImage processed = createProcessed(bufferedImg);
+		BufferedImage processed = PicController.createProcessed(bufferedImg);
 		byte[] processedInByte = Convertors.bufferedImageToByteArray(processed, types[1]);
 		ByteBuffer processedbuf = ByteBuffer.wrap(processedInByte);
 
 		Date currentTimestamp = new Date();
 
-		Session session = cluster.connect(Keyspaces.KEYSPACE_NAME);
+		Session session = this.cluster.connect(Keyspaces.KEYSPACE_NAME);
 		PreparedStatement psInsertPic = session
 				.prepare("insert into pics ( picid, image,thumb,processed, user, interaction_time,imagelength,thumblength,processedlength,type,name) values(?,?,?,?,?,?,?,?,?,?,?)");
 		PreparedStatement psInsertPicToUser = session
@@ -116,104 +76,23 @@ public class PicModel {
 		session.close();
 
 	}
-
-	public static BufferedImage blackAndWhite(BufferedImage img) {
-		img = org.imgscalr.Scalr.apply(img, OP_GRAYSCALE);
-		return img;
-	}
-
-	public static BufferedImage createThumbnail(BufferedImage img) {
-		img = resize(img, Method.BALANCED, 250, OP_ANTIALIAS);
-		// Let's add a little border before we return result.
-		return pad(img, 2);
-	}
-
-	public static BufferedImage createProcessed(BufferedImage img) {
-		int Width = img.getWidth() - 1;
-		img = resize(img, Method.QUALITY, Width, OP_ANTIALIAS);
-		return pad(img, 4);
-	}
-
-	public static BufferedImage rotate(BufferedImage buffImage, String direction) {
-		if (!stringInStringList(direction, rotationOperationsList)) {
-			System.err.println("rotate Picture  invalid manipulation value "
-					+ direction);
-			return buffImage;
-		}
-
-		switch (direction) {
-		case LEFT:
-			buffImage = org.imgscalr.Scalr.rotate(buffImage, Rotation.CW_270);
-			break;
-		case RIGHT:
-			buffImage = org.imgscalr.Scalr.rotate(buffImage, Rotation.CW_90);
-			break;
-		}
-
-		return buffImage;
-	}
-
-	public static BufferedImage changeBrighteness(BufferedImage buffImage,
-			String brightness) {
-		if (!stringInStringList(brightness, brightnessOperationsList)) {
-			System.err
-					.println("picture update brightness invalid manipulation value "
-							+ brightness);
-			return buffImage;
-		}
-		switch (brightness) {
-		case DARK:
-			buffImage = org.imgscalr.Scalr.apply(buffImage, OP_DARKER);
-			break;
-		case BRIGHT:
-			buffImage = org.imgscalr.Scalr.apply(buffImage, OP_BRIGHTER);
-			break;
-		}
-		return buffImage;
-	}
-
-	private BufferedImage manipulatePic(Pic pic,
-			Entry<String, String> typeOfManipulation) {
-		final String manipulationKey = typeOfManipulation.getKey();
-		final String manipulationValue = typeOfManipulation.getValue();
-		if (!stringInStringList(manipulationKey, manipulationKeyList)) {
-			System.err.println("update Picture invalid manipulation type "
-					+ manipulationKey);
-			return null;
-		}
-
-		BufferedImage manipulatedBuffImg = Convertors.byteArrayToBufferedImage(pic
-				.getBytes());
-		switch (manipulationKey) {
-		case ROTATE:
-			manipulatedBuffImg = rotate(manipulatedBuffImg, manipulationValue);
-
-			break;
-		case BRIGHTNESS:
-			manipulatedBuffImg = changeBrighteness(manipulatedBuffImg,
-					manipulationValue);
-			break;
-		}
-		return manipulatedBuffImg;
-
-	}
-
+	
 	public void updatePic(UUID picID, Entry<String, String> typeOfManipulation) {
 
 		Pic processedPic = this.getPicFromDB(Convertors.DISPLAY_PROCESSED,
 				picID);
 		Pic thubmnailPic = this.getPicFromDB(Convertors.DISPLAY_THUMB, picID);
-
-		BufferedImage proccesedBuff = manipulatePic(processedPic,
+		PicController picModel = new PicController();
+		BufferedImage proccesedBuff = picModel.manipulatePic(processedPic,
 				typeOfManipulation);
-		BufferedImage thumbnailBuff = manipulatePic(thubmnailPic,
+		BufferedImage thumbnailBuff = picModel.manipulatePic(thubmnailPic,
 				typeOfManipulation);
 
 		byte[] thumbnailInBytes = null;
 		byte[] processedInBytes = null;
 
 		String thumbnailTypes[] = Convertors.SplitFiletype(thubmnailPic.getType());
-		String processedTypes[] = Convertors.SplitFiletype(thubmnailPic.getType());
+		String processedTypes[] = Convertors.SplitFiletype(processedPic.getType());
 
 		thumbnailInBytes = Convertors.bufferedImageToByteArray(thumbnailBuff, thumbnailTypes[1]);
 		processedInBytes = Convertors.bufferedImageToByteArray(proccesedBuff, processedTypes[1]);
@@ -253,11 +132,13 @@ public class PicModel {
 			for (Row row : rs) {
 				UUID picid = row.getUUID("picid");
 				Pic pic = new Pic();
-				System.out.println("UUID" + picid.toString());
+				if(Globals.DEBUG)
+					System.out.println("UUID" + picid.toString());
 				pic.setUUID(picid);
 				picList.add(pic);
 			}
 		}
+		session.close();
 		return picList;
 	}
 
@@ -266,9 +147,11 @@ public class PicModel {
 			System.err.println("Cannot delete Picture with pic is null");
 			return;
 		}
+		//if picowner has pic as his profilepic then delte his profilepic
 		if(pic.getUser().getProfilepicId().equals(pic.getUUID())){
 			pic.getUser().deleteProfilePic();
 		}
+		//TODO what if another user (not picowner) has this pic as his profilepic
 		Session session = cluster.connect(Keyspaces.KEYSPACE_NAME);
 		PreparedStatement ps1 = session
 				.prepare("DELETE FROM pics WHERE picid=?");
@@ -287,6 +170,7 @@ public class PicModel {
 		SimpleStatement st = new SimpleStatement("SELECT user FROM pics WHERE picid=?",picid);
 		Session session = this.cluster.connect(Keyspaces.KEYSPACE_NAME);
 		ResultSet rs = session.execute(st);
+		session.close();
 		if(!rs.isExhausted()){
 			Row row = rs.one();
 			String username = row.getString(0);
@@ -329,7 +213,7 @@ public class PicModel {
 				+ POSTFIX_QUERY);
 		ResultSet rs = session.execute( // this is where the query is executed
 				ps.bind(picid));
-
+		
 		if (rs.isExhausted()) {
 			System.out.println("No Images returned");
 			return null;
@@ -357,17 +241,4 @@ public class PicModel {
 		}
 
 	}
-
-	private static boolean stringInStringList(String needle,
-			final List<String> stringList) {
-		boolean keyInList = false;
-		for (String key : stringList) {
-			if (key.equalsIgnoreCase(needle)) {
-				keyInList = true;
-				break;
-			}
-		}
-		return keyInList;
-	}
-
 }

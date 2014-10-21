@@ -10,6 +10,7 @@ import uk.ac.dundee.computing.kb.burnigram.lib.CassandraHosts;
 import uk.ac.dundee.computing.kb.burnigram.lib.Keyspaces;
 import uk.ac.dundee.computing.kb.burnigram.models.User;
 
+import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
@@ -64,8 +65,8 @@ public class Comment {
 	
 	public static List<Comment> getCommentListFromDbByPicid(UUID picid){
 		List<Comment> commentList = new LinkedList<Comment>();
-		
-		Session session = CassandraHosts.getCluster().connect(Keyspaces.KEYSPACE_NAME);
+		Cluster cluster = CassandraHosts.getCluster();
+		Session session = cluster.connect(Keyspaces.KEYSPACE_NAME);
 		PreparedStatement ps = session.prepare("SELECT * FROM comments WHERE picid = ? ");
 		ResultSet comments = session.execute(ps.bind(picid));
 		if(!comments.isExhausted()){
@@ -79,6 +80,7 @@ public class Comment {
 			}
 		}
 		session.close();
+		cluster.closeAsync();
 		return commentList;
 	}
 	
@@ -89,12 +91,14 @@ public class Comment {
 			return false;
 		}
 		try{
-			Session session = CassandraHosts.getCluster().connect(Keyspaces.KEYSPACE_NAME);
+			Cluster cluster = CassandraHosts.getCluster();
+			Session session = cluster.connect(Keyspaces.KEYSPACE_NAME);
 			PreparedStatement ps = session.prepare("INSERT INTO comments (picid, user, comment, comment_added )"
 					+ " VALUES(?,?,?,?);");
 			session.execute(ps.bind(this.getPicid(),this.getUser().getUsername(),
 					this.getContent(),this.getCreated()));
 			session.close();
+			cluster.close();
 			return true;
 		}catch(Exception ex){
 			System.err.println("Error in insertCommentIntoDB "+ex);

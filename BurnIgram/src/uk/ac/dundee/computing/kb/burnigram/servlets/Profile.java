@@ -29,23 +29,25 @@ import uk.ac.dundee.computing.kb.burnigram.lib.Convertors;
 @WebServlet({ "/Profile", "/Profile/*" })
 public class Profile extends HttpServlet {
 	private static final long serialVersionUID = 1L;
-	private HashMap<String, Integer> CommandsMap= new HashMap<String, Integer>();
-       
-    /**
-     * @see HttpServlet#HttpServlet()
-     */
-    public Profile() {
-        super();
-        CommandsMap.put("Profile", 1);
-        
-    }
+	private HashMap<String, Integer> CommandsMap = new HashMap<String, Integer>();
 
 	/**
-	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
+	 * @see HttpServlet#HttpServlet()
 	 */
-	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+	public Profile() {
+		super();
+		CommandsMap.put("Profile", 1);
+
+	}
+
+	/**
+	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse
+	 *      response)
+	 */
+	protected void doGet(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
 		LoggedIn loggedIn = (LoggedIn) request.getSession().getAttribute("loggedIn");
-		if(loggedIn.getUser()==null){
+		if (loggedIn.getUser() == null) {
 			return;
 		}
 		String args[] = Convertors.SplitRequestPath(request);
@@ -62,69 +64,65 @@ public class Profile extends HttpServlet {
 		}
 		switch (command) {
 		case 1:
-			RequestDispatcher rd = null;
+			RequestDispatcher rd = request.getRequestDispatcher("/myprofile.jsp");
 			String username = args[2];
-			if(username.equalsIgnoreCase(loggedIn.getUser().getUsername())){
-				rd = request.getRequestDispatcher("/myprofile.jsp");
-			}else{		 
-				UserDbHelper userDBHelper = new UserDbHelper();
-				if(userDBHelper.userNameExists(username)){
-					User user = userDBHelper.getUserFromDb(username);
-					request.setAttribute("user", user);
-				}		
-			
+
+			UserDbHelper userDBHelper = new UserDbHelper();
+			if (userDBHelper.userNameExists(username) &&
+					!username.equalsIgnoreCase(loggedIn.getUser().getUsername())) {
+				User user = userDBHelper.getUserFromDb(username);
+				request.setAttribute("user", user);
 				rd = request.getRequestDispatcher("/profile.jsp");
 			}
+
 			rd.forward(request, response);
 			break;
-		
+
 		default:
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 		}
-       
-        
+
 	}
-	
+
 	protected void doPut(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
-		
+
 		String args[] = Convertors.SplitRequestPath(request);
 		LoggedIn loggedIn = (LoggedIn) request.getSession().getAttribute("loggedIn");
-		if(loggedIn.getUser()==null){
+		if (loggedIn.getUser() == null) {
 			return;
 		}
 		UserDbHelper userDbHelper = new UserDbHelper();
-		switch(args[2]){
-			case "Profilepic":
-				//TODO check if args[3] is not empty or null
-				UUID pictureId = UUID.fromString(args[3]);
-				PicDbHelper picDbHelper = new PicDbHelper();
-				Pic picture = picDbHelper.getPicFromDB(Convertors.DISPLAY_ORIGINAL_IMAGE, pictureId);
-				loggedIn.getUser().setProfilepic(picture.getUUID());
-				
-				if(!userDbHelper.updateUser(loggedIn.getUser())){
+		switch (args[2]) {
+		case "Profilepic":
+			// TODO check if args[3] is not empty or null
+			UUID pictureId = UUID.fromString(args[3]);
+			PicDbHelper picDbHelper = new PicDbHelper();
+			Pic picture = picDbHelper.getPicFromDB(Convertors.DISPLAY_ORIGINAL_IMAGE, pictureId);
+			loggedIn.getUser().setProfilepic(picture.getUUID());
+
+			if (!userDbHelper.updateUser(loggedIn.getUser())) {
+				System.err.println("Can not update user in DB");
+			}
+			break;
+		case "Email":
+			BufferedReader br = new BufferedReader(new InputStreamReader(request.getInputStream()));
+			String data = br.readLine();
+			br.close();
+			if (data.startsWith("email=")) {
+				data = URLDecoder.decode(data, "UTF-8");
+				data = data.replace("email=", "");
+				String[] emails = data.split(",");
+				LinkedHashSet<String> emailSet = new LinkedHashSet<String>(Arrays.asList(emails));
+				loggedIn.getUser().setEmail(emailSet);
+				userDbHelper = new UserDbHelper();
+				if (!userDbHelper.updateUser(loggedIn.getUser())) {
 					System.err.println("Can not update user in DB");
 				}
-				break;
-			case "Email":
-				BufferedReader br = new BufferedReader(new InputStreamReader(request.getInputStream()));
-				String data = br.readLine();
-				br.close();
-				if(data.startsWith("email=")){
-					data=URLDecoder.decode(data,"UTF-8");
-					data=data.replace("email=", "");
-					String[] emails = data.split(",");
-					LinkedHashSet<String> emailSet = new LinkedHashSet<String>(Arrays.asList(emails));
-					loggedIn.getUser().setEmail(emailSet);
-					userDbHelper = new UserDbHelper();
-					if(!userDbHelper.updateUser(loggedIn.getUser())){
-						System.err.println("Can not update user in DB");
-					}
-				}
-				
+			}
+
 		}
-      
-		
+
 	}
 
 }

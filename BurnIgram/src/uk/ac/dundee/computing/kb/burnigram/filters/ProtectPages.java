@@ -33,8 +33,8 @@ import uk.ac.dundee.computing.kb.burnigram.servlets.Login;
  * @author Administrator
  */
 @WebFilter(filterName = "ProtectPages", 
-urlPatterns = {"/Profile/*","/profile.jsp", "/upload.jsp","/include/*","/Comment/*" }, dispatcherTypes = {
-		DispatcherType.REQUEST, DispatcherType.FORWARD})
+urlPatterns = {"/Profile/*","/profile.jsp","/myprofile.jsp", "/upload.jsp","/include/*","/Comment/*" }, dispatcherTypes = {
+		DispatcherType.REQUEST})
 public class ProtectPages implements Filter {
 
 	
@@ -127,9 +127,10 @@ public class ProtectPages implements Filter {
 			if(Globals.DEBUG)
 				System.out.println("Foward to login");
 			rd = request.getRequestDispatcher("/login.jsp");
-		}
-		if(includeFolderAccess(httpReq)){
+		}else if(includeFolderAccess(httpReq)){
 			rd = request.getRequestDispatcher("/index.jsp");
+		}else if(directProfileJspAccess(httpReq)){
+			rd = request.getRequestDispatcher("/myprofile.jsp");
 		}
 		if(rd != null)
 			rd.forward(request, response);
@@ -261,13 +262,31 @@ public class ProtectPages implements Filter {
 		String args[] = Convertors.SplitRequestPath(request);
 		try{
 			if(args[1].equals("include")){
-				System.out.println("tried to acces include folder");
+				if(Globals.DEBUG)
+					System.out.println("tried to acces include folder");
 				includeFolderAccessed = true;
 			}
 		}catch(ArrayIndexOutOfBoundsException ex){
-			
+			if(Globals.DEBUG)
+				ex.printStackTrace();
 		}
 		return includeFolderAccessed;
+	}
+	
+	private boolean directProfileJspAccess(HttpServletRequest request){
+		boolean directProfileJspAccess = false;
+		String args[] = Convertors.SplitRequestPath(request);
+		try{
+			if(args[1].equalsIgnoreCase("myprofile.jsp") ||
+					args[1].equalsIgnoreCase("profile.jsp")){
+				System.out.println("tried to acces myprofile or profile");
+				directProfileJspAccess = true;
+			}
+		}catch(ArrayIndexOutOfBoundsException ex){
+			if(Globals.DEBUG)
+				ex.printStackTrace();
+		}
+		return directProfileJspAccess;
 	}
 
 }

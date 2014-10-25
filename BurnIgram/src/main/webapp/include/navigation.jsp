@@ -17,9 +17,9 @@
 			//if logged in
 			} else {
 		%>
-		<li><a href="${Globals.root_path}/profile.jsp">Profile</a></li>
+		<li><a href="${Globals.root_path}/Profile/${loggedIn.user.username}">Profile</a></li>
 		<li><a href="${Globals.root_path}/upload.jsp">Upload</a></li>
-		<li><a href="${Globals.root_path}/Images/<%=loggedIn.getUser().getUsername()%>">
+		<li><a href="${Globals.root_path}/Images/${loggedIn.user.username}">
 				Your Images</a></li>
 		<li><a href="${Globals.root_path}/Logout">Sign Out</a></li>
 		<%

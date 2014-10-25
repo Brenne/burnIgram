@@ -9,7 +9,6 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import uk.ac.dundee.computing.kb.burnigram.beans.User;
 import uk.ac.dundee.computing.kb.burnigram.dbHelpers.UserDbHelper;
 import uk.ac.dundee.computing.kb.burnigram.lib.Convertors;
 

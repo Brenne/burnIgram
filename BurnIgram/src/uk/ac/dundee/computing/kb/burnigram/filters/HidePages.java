@@ -12,7 +12,6 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.annotation.WebFilter;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import uk.ac.dundee.computing.kb.burnigram.beans.Globals;
@@ -32,7 +31,7 @@ import uk.ac.dundee.computing.kb.burnigram.servlets.Login;
 		)
 public class HidePages implements Filter {
 
-    private FilterConfig filterConfig;
+    
 
 	/**
      * Default constructor. 
@@ -41,12 +40,7 @@ public class HidePages implements Filter {
         // TODO Auto-generated constructor stub
     }
 
-	/**
-	 * @see Filter#destroy()
-	 */
-	public void destroy() {
-		this.filterConfig = null;
-	}
+
 
 	/**
 	 * @see Filter#doFilter(ServletRequest, ServletResponse, FilterChain)
@@ -72,12 +66,22 @@ public class HidePages implements Filter {
 		}
 	}
 
-	/**
-	 * @see Filter#init(FilterConfig)
-	 */
-	public void init(FilterConfig fConfig) throws ServletException {
+
+
+	@Override
+	public void init(FilterConfig filterConfig) throws ServletException {
 		// TODO Auto-generated method stub
-		this.filterConfig = fConfig;
+		
 	}
+
+
+
+	@Override
+	public void destroy() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	
 
 }

@@ -6,7 +6,7 @@
 <head>
 <jsp:include page="include/head.jsp" />
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<title>${Globals.app_name}-Pics of ${Username}</title>
+<title>${Globals.app_name}-Picsof ${Username}</title>
 </head>
 <body>
 	<jsp:include page="include/header.jsp" />
@@ -25,11 +25,12 @@
 		<div class="success"></div>
 		<c:forEach items="${Pics}" var="pic">
 			<p class="pic">
-				<a href="${Globals.root_path}/Image/${pic.SUUID}"> <img
-					id="${pic.SUUID}" src="${Globals.root_path}/Thumb/${pic.SUUID}">
-				</a><br />
-				<button class="profilepic" value="Use as my profile picture">my
-					profile pic</button>
+				<a href="${Globals.root_path}/Image/${pic.SUUID}"><img
+					id="${pic.SUUID}" src="${Globals.root_path}/Thumb/${pic.SUUID}"></a>
+				<br />
+				<button class="profilepic" value="Use as my profile picture">
+					my profile pic
+				</button>
 				<button class="delete">Delete this pic</button>
 				<br> <a href="${Globals.root_path}/ImageInfo/${pic.SUUID}">Image
 					info</a>

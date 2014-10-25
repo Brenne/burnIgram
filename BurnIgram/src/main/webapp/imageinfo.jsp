@@ -12,9 +12,9 @@
 	<jsp:include page="include/header.jsp" />
 	<jsp:include page="include/navigation.jsp" />
 	<div class="content">
-		<a href="${Globals.root_path}/Image/${Pic.SUUID}"> <img id="thumb"
-			src="${Globals.root_path}/Thumb/${Pic.SUUID}">
-		</a> <br> Name: ${Pic.name} <br> Owner: ${Pic.user.username} <br>
+		<a href="${Globals.root_path}/Image/${Pic.SUUID}"><img id="thumb"
+			src="${Globals.root_path}/Thumb/${Pic.SUUID}"></a> 
+			<br> Name: ${Pic.name} <br> Owner: ${Pic.user.username} <br>
 		<a href="${Globals.root_path}/OriginalImage/${Pic.SUUID}">Display
 			Original Image </a> 
 			<button class="original" id="original">Revert to original</button><br>

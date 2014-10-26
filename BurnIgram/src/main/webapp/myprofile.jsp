@@ -31,7 +31,7 @@
 	</c:if>
 	</div>
 	
-	<script type="text/javascript" src="js/profile.js.jsp"></script>
+	<script type="text/javascript" src="${Globals.root_path}/js/profile.js.jsp"></script>
 	<jsp:include page="include/footer.jsp"></jsp:include>
 </body>
 </html>

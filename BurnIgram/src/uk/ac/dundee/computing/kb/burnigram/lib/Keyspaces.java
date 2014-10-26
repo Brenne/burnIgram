@@ -7,7 +7,7 @@ import com.datastax.driver.core.SimpleStatement;
 
 public final class Keyspaces {
 
-	public static final String KEYSPACE_NAME = "instagrim";
+	public static final String KEYSPACE_NAME = "burnigram";
 
 	public Keyspaces() {
 
